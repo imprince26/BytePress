@@ -44,7 +44,7 @@ const featuredTools = [
   },
   {
     title: "PDF Tools",
-    description: "Merge PDFs and extract the pages you need.",
+    description: "Merge PDFs, extract pages, and turn images into documents.",
     href: "/tools/pdf-merge#tool-workspace",
     icon: FilePdf,
     accent: "bg-rose-100 text-rose-800",

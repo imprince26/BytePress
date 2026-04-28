@@ -4,6 +4,7 @@ import {
   ArrowsClockwise,
   FilePdf,
   ImageSquare,
+  ImagesSquare,
   Sparkle,
 } from "@phosphor-icons/react/dist/ssr"
 
@@ -36,6 +37,14 @@ const tools = [
     icon: Sparkle,
     accent: "bg-amber-100 text-amber-800",
     category: "Image",
+  },
+  {
+    title: "Images to PDF",
+    description: "Turn one or more images into a clean PDF.",
+    href: "/tools/images-to-pdf#tool-workspace",
+    icon: ImagesSquare,
+    accent: "bg-lime-100 text-lime-800",
+    category: "PDF",
   },
   {
     title: "PDF Merge",
@@ -85,9 +94,9 @@ export default function ToolsPage() {
 
           <div className="rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl shadow-slate-900/5 backdrop-blur">
             <div className="grid grid-cols-3 gap-3 text-center">
-              <Metric value="6" label="tools" />
+              <Metric value="7" label="tools" />
               <Metric value="3" label="image" />
-              <Metric value="3" label="pdf" />
+              <Metric value="4" label="pdf" />
             </div>
           </div>
         </div>
