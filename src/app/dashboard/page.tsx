@@ -1,7 +1,7 @@
 import { headers } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowRight, FilePdf, ImageSquare, Sparkle } from "@phosphor-icons/react/dist/ssr"
+import { ArrowRight, FilePdf, Gear, ImageSquare, Sparkle } from "@phosphor-icons/react/dist/ssr"
 
 import { SiteHeader } from "@/components/site-header"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +14,7 @@ const quickActions = [
   { title: "Compress image", href: "/tools/image-compress", icon: ImageSquare },
   { title: "Convert image", href: "/tools/image-convert", icon: Sparkle },
   { title: "Merge PDF", href: "/tools/pdf-merge", icon: FilePdf },
+  { title: "Settings", href: "/settings", icon: Gear },
 ]
 
 export default async function DashboardPage() {
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
               <CardTitle>Quick actions</CardTitle>
               <CardDescription>Start with a common task.</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-3">
+            <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {quickActions.map((action) => {
                 const Icon = action.icon
                 return (

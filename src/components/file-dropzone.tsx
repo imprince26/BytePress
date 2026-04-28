@@ -58,7 +58,10 @@ export function FileDropzone({
         accept={accept}
         multiple={multiple}
         className="sr-only"
-        onChange={(event) => onFiles(event.target.files)}
+        onChange={(event) => {
+          onFiles(event.target.files)
+          event.currentTarget.value = ""
+        }}
       />
     </label>
   )

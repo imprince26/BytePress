@@ -54,7 +54,7 @@ export function ImageResizeTool() {
   const [height, setHeight] = useState(800)
   const [ratio, setRatio] = useState<number | null>(null)
   const [lockRatio, setLockRatio] = useState(true)
-  const [format, setFormat] = useState<OutputFormat>("image/webp")
+  const [format, setFormat] = useState<OutputFormat>("image/jpeg")
   const [quality, setQuality] = useState(90)
   const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
@@ -255,7 +255,10 @@ function PreviewCard({ file, previewUrl, result }: { file: File | null; previewU
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-          {previewUrl ? (
+          {result?.url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={result.url} alt="Resized preview" className="aspect-video w-full object-contain" />
+          ) : previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-contain" />
           ) : (

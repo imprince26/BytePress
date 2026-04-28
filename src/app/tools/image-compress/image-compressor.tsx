@@ -50,7 +50,7 @@ export function ImageCompressor() {
   const [quality, setQuality] = useState(75)
   const [targetKb, setTargetKb] = useState(500)
   const [mode, setMode] = useState<CompressionMode>("quality")
-  const [format, setFormat] = useState<OutputFormat>("image/webp")
+  const [format, setFormat] = useState<OutputFormat>("image/jpeg")
   const [result, setResult] = useState<Result | null>(null)
   const [usage, setUsage] = useState<Usage | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -303,7 +303,10 @@ export function ImageCompressor() {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-              {previewUrl ? (
+              {result?.url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={result.url} alt="Compressed preview" className="aspect-video w-full object-contain" />
+              ) : previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-contain" />
               ) : (

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { DownloadSimple, FilePdf, Plus } from "@phosphor-icons/react"
+import { ArrowDown, ArrowUp, DownloadSimple, FilePdf, Plus, Trash } from "@phosphor-icons/react"
 import { PDFDocument } from "pdf-lib"
 
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +23,7 @@ export function PdfMergeTool() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const resultUrlRef = useRef<string | null>(null)
+  const filesRef = useRef<File[]>([])
 
   useEffect(() => {
     fetch("/api/usage").then((response) => response.json()).then(setUsage).catch(() => setUsage(null))
@@ -36,10 +37,35 @@ export function PdfMergeTool() {
 
   function chooseFiles(nextFiles: FileList | null) {
     const selected = Array.from(nextFiles ?? [])
+    if (!selected.length) return
+
     const validationError = validatePdfFiles(selected)
     setResult(null)
     setError(validationError)
-    setFiles(validationError ? [] : selected)
+    if (validationError) return
+
+    const nextOrderedFiles = [...filesRef.current, ...selected]
+    filesRef.current = nextOrderedFiles
+    setFiles(nextOrderedFiles)
+  }
+
+  function removeFile(index: number) {
+    const nextFiles = filesRef.current.filter((_, fileIndex) => fileIndex !== index)
+    filesRef.current = nextFiles
+    setFiles(nextFiles)
+    setResult(null)
+  }
+
+  function moveFile(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction
+    if (nextIndex < 0 || nextIndex >= filesRef.current.length) return
+
+    const nextFiles = [...filesRef.current]
+    const [file] = nextFiles.splice(index, 1)
+    nextFiles.splice(nextIndex, 0, file)
+    filesRef.current = nextFiles
+    setFiles(nextFiles)
+    setResult(null)
   }
 
   function mergePdfs() {
@@ -111,10 +137,10 @@ export function PdfMergeTool() {
             <div>
               <Label htmlFor="pdfs">PDF files</Label>
               <div className="mt-2">
-                <FileDropzone id="pdfs" title="Drop PDFs here" description="Select two or more PDFs in the order you want them merged." accept="application/pdf,.pdf" multiple onFiles={chooseFiles} />
+                <FileDropzone id="pdfs" title="Drop PDFs here" description="Add multiple PDFs. Reorder them below before merging." accept="application/pdf,.pdf" multiple onFiles={chooseFiles} />
               </div>
             </div>
-            {files.length ? <FileList files={files} /> : null}
+            {files.length ? <FileList files={files} onMove={moveFile} onRemove={removeFile} /> : null}
             {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
             <Button className="h-12 w-full rounded-full" disabled={files.length < 2 || isPending || usage?.requiresLogin} onClick={mergePdfs}>{isPending ? "Merging..." : "Merge PDFs"}</Button>
             {usage ? <p className="text-center text-xs text-slate-500">Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.</p> : null}
@@ -127,10 +153,42 @@ export function PdfMergeTool() {
   )
 }
 
-function FileList({ files }: { files: File[] }) {
-  return <div className="space-y-2">{files.map((file, index) => <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm"><span className="truncate">{index + 1}. {file.name}</span><span className="shrink-0 text-slate-500">{formatBytes(file.size)}</span></div>)}</div>
+function FileList({
+  files,
+  onMove,
+  onRemove,
+}: {
+  files: File[]
+  onMove: (index: number, direction: -1 | 1) => void
+  onRemove: (index: number) => void
+}) {
+  return (
+    <div className="space-y-3">
+      {files.map((file, index) => (
+        <div key={`${file.name}-${file.size}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-3 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="truncate font-semibold text-slate-950">{index + 1}. {file.name}</div>
+              <div className="mt-1 text-xs text-slate-500">{formatBytes(file.size)}</div>
+            </div>
+            <div className="flex shrink-0 gap-1">
+              <Button variant="outline" size="icon" className="size-8 rounded-full bg-white" disabled={index === 0} onClick={() => onMove(index, -1)}>
+                <ArrowUp className="size-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="size-8 rounded-full bg-white" disabled={index === files.length - 1} onClick={() => onMove(index, 1)}>
+                <ArrowDown className="size-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="size-8 rounded-full bg-white text-rose-700" onClick={() => onRemove(index)}>
+                <Trash className="size-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function ResultCard({ result, empty }: { result: Result | null; empty: string }) {
-  return <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur"><CardHeader><CardTitle>Result</CardTitle><CardDescription>Download when ready.</CardDescription></CardHeader><CardContent className="space-y-5"><div className="flex aspect-video flex-col items-center justify-center rounded-[1.5rem] border border-slate-200 bg-slate-50 text-center text-slate-500"><FilePdf className="size-12" weight="duotone" /><p className="mt-3 text-sm">{result ? `${result.pages} pages ready` : empty}</p></div>{result ? <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4"><p className="text-sm font-medium text-emerald-950">Ready: {formatBytes(result.size)}</p><Button asChild className="mt-4 h-11 w-full rounded-full"><a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download PDF</a></Button></div> : null}</CardContent></Card>
+  return <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur"><CardHeader><CardTitle>Result</CardTitle><CardDescription>Download when ready.</CardDescription></CardHeader><CardContent className="space-y-5"><div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 text-center text-slate-500">{result ? <iframe src={result.url} title="Merged PDF preview" className="aspect-video w-full" /> : <div className="flex aspect-video flex-col items-center justify-center"><FilePdf className="size-12" weight="duotone" /><p className="mt-3 text-sm">{empty}</p></div>}</div>{result ? <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4"><p className="text-sm font-medium text-emerald-950">{result.pages} pages ready: {formatBytes(result.size)}</p><Button asChild className="mt-4 h-11 w-full rounded-full"><a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download PDF</a></Button></div> : null}</CardContent></Card>
 }

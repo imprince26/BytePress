@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { DownloadSimple, FilePdf, ImagesSquare } from "@phosphor-icons/react"
+import { ArrowDown, ArrowUp, DownloadSimple, FilePdf, ImagesSquare, Trash } from "@phosphor-icons/react"
 import { PDFDocument } from "pdf-lib"
 
 import { FileDropzone } from "@/components/file-dropzone"
@@ -15,10 +15,11 @@ import { recordRecentJob } from "@/lib/recent-jobs"
 
 type Usage = { limit: number; used: number; remaining: number; requiresLogin: boolean }
 type Result = { url: string; name: string; size: number; pages: number }
+type ImageItem = { id: string; file: File; previewUrl: string }
 
 function validateImages(files: File[]) {
   if (!files.length) return "Choose at least one image."
-  if (files.some((file) => !file.type.startsWith("image/"))) return "Please choose image files only."
+  if (files.some((file) => !["image/jpeg", "image/png"].includes(file.type))) return "Please choose JPG or PNG images only."
   if (files.some((file) => file.size > maxImageUploadBytes)) return "Each image must be 50 MB or smaller."
   return null
 }
@@ -40,12 +41,13 @@ async function imageDimensions(file: File) {
 }
 
 export function ImagesToPdfTool() {
-  const [files, setFiles] = useState<File[]>([])
+  const [items, setItems] = useState<ImageItem[]>([])
   const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const resultUrlRef = useRef<string | null>(null)
+  const itemsRef = useRef<ImageItem[]>([])
 
   useEffect(() => {
     fetch("/api/usage").then((response) => response.json()).then(setUsage).catch(() => setUsage(null))
@@ -54,19 +56,53 @@ export function ImagesToPdfTool() {
   useEffect(() => {
     return () => {
       if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
+      itemsRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl))
     }
   }, [])
 
   function chooseFiles(nextFiles: FileList | null) {
     const selected = Array.from(nextFiles ?? [])
+    if (!selected.length) return
+
     const validationError = validateImages(selected)
     setResult(null)
     setError(validationError)
-    setFiles(validationError ? [] : selected)
+    if (validationError) return
+
+    const nextItems = selected.map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }))
+    const mergedItems = [...itemsRef.current, ...nextItems]
+    itemsRef.current = mergedItems
+    setItems(mergedItems)
+  }
+
+  function removeImage(id: string) {
+    const item = itemsRef.current.find((current) => current.id === id)
+    if (item) URL.revokeObjectURL(item.previewUrl)
+    const nextItems = itemsRef.current.filter((current) => current.id !== id)
+    itemsRef.current = nextItems
+    setItems(nextItems)
+    setResult(null)
+  }
+
+  function moveImage(id: string, direction: -1 | 1) {
+    const index = itemsRef.current.findIndex((item) => item.id === id)
+    const nextIndex = index + direction
+    if (index < 0 || nextIndex < 0 || nextIndex >= itemsRef.current.length) return
+
+    const nextItems = [...itemsRef.current]
+    const [item] = nextItems.splice(index, 1)
+    nextItems.splice(nextIndex, 0, item)
+    itemsRef.current = nextItems
+    setItems(nextItems)
+    setResult(null)
   }
 
   function convertImages() {
-    if (!files.length) {
+    if (!items.length) {
       setError("Choose at least one image.")
       return
     }
@@ -74,11 +110,11 @@ export function ImagesToPdfTool() {
     startTransition(async () => {
       try {
         setError(null)
-        const inputBytes = files.reduce((total, file) => total + file.size, 0)
+        const inputBytes = items.reduce((total, item) => total + item.file.size, 0)
         const usageResponse = await fetch("/api/usage", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tool: "pdf_merge", inputBytes, metadata: { action: "images_to_pdf", files: files.length } }),
+          body: JSON.stringify({ tool: "pdf_merge", inputBytes, metadata: { action: "images_to_pdf", files: items.length } }),
         })
         const nextUsage = await usageResponse.json()
         setUsage(nextUsage)
@@ -88,7 +124,8 @@ export function ImagesToPdfTool() {
         }
 
         const pdf = await PDFDocument.create()
-        for (const file of files) {
+        for (const item of items) {
+          const file = item.file
           const bytes = await file.arrayBuffer()
           const dims = await imageDimensions(file)
           const image = file.type === "image/png" ? await pdf.embedPng(bytes) : await pdf.embedJpg(bytes)
@@ -100,8 +137,8 @@ export function ImagesToPdfTool() {
         if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
         const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }))
         resultUrlRef.current = url
-        setResult({ url, name: "images.pdf", size: bytes.byteLength, pages: files.length })
-        recordRecentJob({ tool: "Images to PDF", fileName: `${files.length} images`, inputBytes, outputBytes: bytes.byteLength, summary: `${files.length} pages created` })
+        setResult({ url, name: "images.pdf", size: bytes.byteLength, pages: items.length })
+        recordRecentJob({ tool: "Images to PDF", fileName: `${items.length} images`, inputBytes, outputBytes: bytes.byteLength, summary: `${items.length} pages created` })
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : "Could not create this PDF. JPG and PNG work best.")
       }
@@ -121,13 +158,38 @@ export function ImagesToPdfTool() {
           <CardHeader><CardTitle>PDF settings</CardTitle><CardDescription>JPG and PNG images work best.</CardDescription></CardHeader>
           <CardContent className="space-y-6">
             <div><Label htmlFor="images">Images</Label><div className="mt-2"><FileDropzone id="images" title="Drop images here" description="Select one or more images in the order you want." accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple onFiles={chooseFiles} /></div></div>
-            {files.length ? <div className="space-y-2">{files.map((file, index) => <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm"><span className="truncate">{index + 1}. {file.name}</span><span className="shrink-0 text-slate-500">{formatBytes(file.size)}</span></div>)}</div> : null}
+            {items.length ? (
+              <div className="space-y-3">
+                {items.map((item, index) => (
+                  <div key={item.id} className="grid grid-cols-[4.5rem_1fr] gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-sm">
+                    <div className="overflow-hidden rounded-xl bg-slate-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.previewUrl} alt={item.file.name} className="aspect-square w-full object-cover" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate font-semibold text-slate-950">Page {index + 1}</div>
+                          <div className="truncate text-slate-500">{item.file.name}</div>
+                          <div className="mt-1 text-xs text-slate-500">{formatBytes(item.file.size)}</div>
+                        </div>
+                        <div className="flex shrink-0 gap-1">
+                          <Button variant="outline" size="icon" className="size-8 rounded-full bg-white" disabled={index === 0} onClick={() => moveImage(item.id, -1)}><ArrowUp className="size-4" /></Button>
+                          <Button variant="outline" size="icon" className="size-8 rounded-full bg-white" disabled={index === items.length - 1} onClick={() => moveImage(item.id, 1)}><ArrowDown className="size-4" /></Button>
+                          <Button variant="outline" size="icon" className="size-8 rounded-full bg-white text-rose-700" onClick={() => removeImage(item.id)}><Trash className="size-4" /></Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
             {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
-            <Button className="h-12 w-full rounded-full" disabled={!files.length || isPending || usage?.requiresLogin} onClick={convertImages}>{isPending ? "Creating..." : "Create PDF"}</Button>
+            <Button className="h-12 w-full rounded-full" disabled={!items.length || isPending || usage?.requiresLogin} onClick={convertImages}>{isPending ? "Creating..." : "Create PDF"}</Button>
             {usage ? <p className="text-center text-xs text-slate-500">Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.</p> : null}
           </CardContent>
         </Card>
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur"><CardHeader><CardTitle>Result</CardTitle><CardDescription>Download when ready.</CardDescription></CardHeader><CardContent className="space-y-5"><div className="flex aspect-video flex-col items-center justify-center rounded-[1.5rem] border border-slate-200 bg-slate-50 text-center text-slate-500"><FilePdf className="size-12" weight="duotone" /><p className="mt-3 text-sm">{result ? `${result.pages} pages ready` : "Your PDF will appear here."}</p></div>{result ? <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4"><p className="text-sm font-medium text-emerald-950">Ready: {formatBytes(result.size)}</p><Button asChild className="mt-4 h-11 w-full rounded-full"><a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download PDF</a></Button></div> : null}</CardContent></Card>
+        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur"><CardHeader><CardTitle>Result</CardTitle><CardDescription>Download when ready.</CardDescription></CardHeader><CardContent className="space-y-5"><div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 text-center text-slate-500">{result ? <iframe src={result.url} title="PDF preview" className="aspect-video w-full" /> : <div className="flex aspect-video flex-col items-center justify-center"><FilePdf className="size-12" weight="duotone" /><p className="mt-3 text-sm">Your PDF will appear here.</p></div>}</div>{result ? <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4"><p className="text-sm font-medium text-emerald-950">{result.pages} pages ready: {formatBytes(result.size)}</p><Button asChild className="mt-4 h-11 w-full rounded-full"><a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download PDF</a></Button></div> : null}</CardContent></Card>
       </div>
     </section>
   )

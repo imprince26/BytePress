@@ -60,6 +60,9 @@ export async function SiteHeader({
             <Button asChild variant="outline" className="hidden h-11 rounded-full bg-white/75 px-5 text-sm sm:inline-flex">
               <Link href="/dashboard">Dashboard</Link>
             </Button>
+            <Button asChild variant="outline" className="hidden h-11 rounded-full bg-white/75 px-5 text-sm lg:inline-flex">
+              <Link href="/settings">Settings</Link>
+            </Button>
             <SignOutButton />
           </>
         ) : !hideAuthAction ? (

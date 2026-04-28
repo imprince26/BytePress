@@ -50,7 +50,7 @@ type Result = {
 export function ImageConvertTool() {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [format, setFormat] = useState<OutputFormat>("image/webp")
+  const [format, setFormat] = useState<OutputFormat>("image/jpeg")
   const [quality, setQuality] = useState(90)
   const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
@@ -208,7 +208,10 @@ export function ImageConvertTool() {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-              {previewUrl ? (
+              {result?.url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={result.url} alt="Converted preview" className="aspect-video w-full object-contain" />
+              ) : previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-contain" />
               ) : (
