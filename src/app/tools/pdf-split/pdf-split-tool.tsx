@@ -6,6 +6,7 @@ import { PDFDocument } from "pdf-lib"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { FileDropzone } from "@/components/file-dropzone"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -114,7 +115,7 @@ export function PdfSplitTool() {
         <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
           <CardHeader><CardTitle>Split settings</CardTitle><CardDescription>Use ranges like 1-3, 5, 8-10.</CardDescription></CardHeader>
           <CardContent className="space-y-6">
-            <div><Label htmlFor="pdf">PDF file</Label><Input id="pdf" type="file" accept="application/pdf,.pdf" className="mt-2 bg-white" onChange={(event) => chooseFile(event.target.files?.[0] ?? null)} /></div>
+            <div><Label htmlFor="pdf">PDF file</Label><div className="mt-2"><FileDropzone id="pdf" title="Drop a PDF here" description="Choose the PDF you want to split." accept="application/pdf,.pdf" onFiles={(files) => chooseFile(files?.[0] ?? null)} /></div></div>
             <div><Label htmlFor="range">Pages {pageCount ? `(1-${pageCount})` : ""}</Label><Input id="range" className="mt-2 bg-white" value={range} onChange={(event) => setRange(event.target.value)} placeholder="1-3, 5" /></div>
             {file ? <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600"><span className="font-semibold text-slate-950">{file.name}</span><br />{formatBytes(file.size)}{pageCount ? ` • ${pageCount} pages` : ""}</div> : null}
             {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}

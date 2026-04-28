@@ -1,7 +1,10 @@
 import Link from "next/link"
+import { headers } from "next/headers"
 import { Stack } from "@phosphor-icons/react/dist/ssr"
 
 import { Button } from "@/components/ui/button"
+import { SignOutButton } from "@/components/sign-out-button"
+import { auth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 
 type SiteHeaderProps = {
@@ -11,12 +14,22 @@ type SiteHeaderProps = {
   hideAuthAction?: boolean
 }
 
-export function SiteHeader({
+async function getCurrentSession() {
+  try {
+    return await auth.api.getSession({ headers: await headers() })
+  } catch {
+    return null
+  }
+}
+
+export async function SiteHeader({
   className,
   nav,
   compactActions = false,
   hideAuthAction = false,
 }: SiteHeaderProps) {
+  const session = await getCurrentSession()
+
   return (
     <header
       className={cn(
@@ -42,7 +55,14 @@ export function SiteHeader({
       ) : null}
 
       <div className="flex items-center gap-3">
-        {!hideAuthAction ? (
+        {session ? (
+          <>
+            <Button asChild variant="outline" className="hidden h-11 rounded-full bg-white/75 px-5 text-sm sm:inline-flex">
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+            <SignOutButton />
+          </>
+        ) : !hideAuthAction ? (
           <Button asChild variant="outline" className="hidden h-11 rounded-full bg-white/75 px-5 text-sm sm:inline-flex">
             <Link href="/login">Sign in</Link>
           </Button>

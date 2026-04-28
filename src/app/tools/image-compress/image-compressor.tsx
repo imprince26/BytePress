@@ -5,6 +5,7 @@ import { DownloadSimple, ImageSquare, LockKey, WarningCircle } from "@phosphor-i
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { FileDropzone } from "@/components/file-dropzone"
 import {
   Card,
   CardContent,
@@ -194,17 +195,8 @@ export function ImageCompressor() {
           <CardContent className="space-y-6">
             <div>
               <Label htmlFor="image">Image file</Label>
-              <div className="mt-2 rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/80 p-5">
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  className="bg-white"
-                  onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
-                />
-                <p className="mt-3 text-xs text-slate-500">
-                  Max size: 50 MB.
-                </p>
+              <div className="mt-2">
+                <FileDropzone id="image" title="Drop an image here" description="PNG, JPG, WEBP, AVIF and other browser-supported image files." accept="image/*" onFiles={(files) => onFileChange(files?.[0] ?? null)} />
               </div>
             </div>
 

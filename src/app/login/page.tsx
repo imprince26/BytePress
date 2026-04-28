@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,oklch(0.94_0.07_176.24),transparent_28rem),radial-gradient(circle_at_bottom_right,oklch(0.93_0.08_78),transparent_26rem),linear-gradient(135deg,oklch(0.99_0.014_95.277),oklch(0.96_0.026_95.277))] px-6 py-6 lg:px-8">
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,oklch(0.94_0.07_176.24),transparent_28rem),radial-gradient(circle_at_bottom_right,oklch(0.93_0.08_78),transparent_26rem),linear-gradient(135deg,oklch(0.99_0.014_95.277),oklch(0.96_0.026_95.277))]">
       <div className="absolute left-1/2 top-20 h-80 w-80 -translate-x-1/2 rounded-full bg-white/60 blur-3xl" />
-      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-3rem)] max-w-6xl flex-col">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col px-6 lg:px-8">
         <SiteHeader
           className="px-0 lg:px-0"
           compactActions
@@ -31,8 +31,8 @@ export default function LoginPage() {
             <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
               Sign in to keep using tools, manage access, and make the workspace feel personal.
             </p>
-            <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-3">
-              {['More daily tasks', 'Saved preferences', 'Friend access'].map((item) => (
+            <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+              {['More daily tasks', 'Saved preferences'].map((item) => (
                 <div key={item} className="rounded-2xl border border-white/70 bg-white/70 p-4 text-sm font-semibold text-slate-700 shadow-sm backdrop-blur">
                   {item}
                 </div>

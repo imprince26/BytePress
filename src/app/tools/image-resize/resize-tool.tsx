@@ -5,6 +5,7 @@ import { ArrowsClockwise, DownloadSimple, ImageSquare } from "@phosphor-icons/re
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { FileDropzone } from "@/components/file-dropzone"
 import {
   Card,
   CardContent,
@@ -181,7 +182,9 @@ export function ImageResizeTool() {
           <CardContent className="space-y-6">
             <div>
               <Label htmlFor="resize-image">Image file</Label>
-              <Input id="resize-image" type="file" accept="image/*" className="mt-2 bg-white" onChange={(event) => chooseFile(event.target.files?.[0] ?? null)} />
+              <div className="mt-2">
+                <FileDropzone id="resize-image" title="Drop an image here" description="Choose the image you want to resize." accept="image/*" onFiles={(files) => chooseFile(files?.[0] ?? null)} />
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

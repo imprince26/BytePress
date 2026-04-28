@@ -79,11 +79,11 @@ export default function Home() {
             <ShieldCheck weight="fill" /> File tools for people who care about control
           </Badge>
 
-          <h1 className="mt-6 max-w-5xl font-heading text-5xl font-black tracking-[-0.055em] text-slate-950 sm:text-6xl lg:text-7xl xl:text-8xl">
+          <h1 className="mt-6 max-w-4xl font-heading text-4xl font-black tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl xl:text-7xl">
             Beautiful tools to compress, convert, resize, and organize your files.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700">
+          <p className="mt-6 max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
             CompressX brings everyday image and document utilities into one clean workspace, made for fast results and simple decisions.
           </p>
 

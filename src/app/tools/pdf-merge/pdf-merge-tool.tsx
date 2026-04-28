@@ -6,8 +6,8 @@ import { PDFDocument } from "pdf-lib"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { FileDropzone } from "@/components/file-dropzone"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatBytes } from "@/lib/file-format"
 import { validatePdfFiles } from "@/lib/pdf-tools"
@@ -102,7 +102,9 @@ export function PdfMergeTool() {
           <CardContent className="space-y-6">
             <div>
               <Label htmlFor="pdfs">PDF files</Label>
-              <Input id="pdfs" type="file" accept="application/pdf,.pdf" multiple className="mt-2 bg-white" onChange={(event) => chooseFiles(event.target.files)} />
+              <div className="mt-2">
+                <FileDropzone id="pdfs" title="Drop PDFs here" description="Select two or more PDFs in the order you want them merged." accept="application/pdf,.pdf" multiple onFiles={chooseFiles} />
+              </div>
             </div>
             {files.length ? <FileList files={files} /> : null}
             {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
