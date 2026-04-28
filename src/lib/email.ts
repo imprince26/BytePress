@@ -25,7 +25,7 @@ function emailLayout(input: {
       <div style="max-width:600px;margin:0 auto;border:1px solid rgba(15,23,42,0.08);background:rgba(255,255,255,0.92);border-radius:28px;overflow:hidden;box-shadow:0 24px 80px rgba(15,23,42,0.12);">
         <div style="height:8px;background:linear-gradient(90deg,#22d3ee,#34d399,#fbbf24);"></div>
         <div style="padding:36px;">
-          <div style="font-size:26px;font-weight:900;letter-spacing:-0.05em;color:#0f172a;">CompressX</div>
+          <div style="font-size:26px;font-weight:900;letter-spacing:-0.05em;color:#0f172a;">BytePress</div>
           <div style="margin-top:32px;font-size:12px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;color:#047857;">${input.eyebrow}</div>
           <h1 style="font-size:32px;line-height:1.12;margin:12px 0 12px;font-weight:900;letter-spacing:-0.04em;color:#0f172a;">${input.title}</h1>
           <p style="font-size:16px;line-height:1.75;color:#475569;margin:0 0 28px;">${input.body}</p>
@@ -47,15 +47,15 @@ export async function sendOtpEmail(input: {
   await getResend().emails.send({
     from: env.EMAIL_FROM,
     to: input.email,
-    subject: isReset ? "Reset your CompressX password" : "Verify your CompressX email",
+    subject: isReset ? "Reset your BytePress password" : "Verify your BytePress email",
     html: emailLayout({
       eyebrow: isReset ? "Password reset" : "Email verification",
       title: isReset ? "Use this code to reset your password" : "Use this code to finish your account",
       body: isReset
         ? "Enter this code on the password reset page to choose a new password. The code expires soon for your security."
-        : "Enter this code on CompressX to verify your email address and complete account creation.",
+        : "Enter this code on BytePress to verify your email address and complete account creation.",
       action: input.otp,
     }),
-    text: `Your CompressX code is ${input.otp}`,
+    text: `Your BytePress code is ${input.otp}`,
   })
 }

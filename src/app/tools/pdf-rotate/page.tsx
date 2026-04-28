@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header"
 import { PdfRotateTool } from "./pdf-rotate-tool"
 
 export const metadata: Metadata = {
-  title: "PDF Rotate - CompressX",
+  title: "PDF Rotate - BytePress",
   description: "Rotate PDF pages and download a corrected file.",
 }
 

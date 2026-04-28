@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { recordRecentJob } from "@/lib/recent-jobs"
 
 type OutputFormat = "image/jpeg" | "image/webp" | "image/png"
 type CompressionMode = "quality" | "target"
@@ -158,6 +159,13 @@ export function ImageCompressor() {
 
         resultUrlRef.current = compressed.url
         setResult(compressed)
+        recordRecentJob({
+          tool: "Image Compress",
+          fileName: file.name,
+          inputBytes: file.size,
+          outputBytes: compressed.size,
+          summary: `Saved ${Math.round(Math.max(0, 1 - compressed.size / file.size) * 100)}%`,
+        })
       } catch (caughtError) {
         setError(
           caughtError instanceof Error
@@ -184,7 +192,7 @@ export function ImageCompressor() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
         <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
           <CardHeader>
             <CardTitle>Image settings</CardTitle>

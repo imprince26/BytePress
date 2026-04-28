@@ -4,8 +4,7 @@ import {
   ArrowsClockwise,
   FilePdf,
   ImageSquare,
-  MagicWand,
-  Scissors,
+  LockKey,
   ShieldCheck,
   Sparkle,
 } from "@phosphor-icons/react/dist/ssr"
@@ -25,28 +24,28 @@ const featuredTools = [
   {
     title: "Compress Images",
     description: "Reduce image file size with quality and target-size controls.",
-    href: "/tools/image-compress",
+    href: "/tools/image-compress#tool-workspace",
     icon: ImageSquare,
     accent: "bg-cyan-100 text-cyan-800",
   },
   {
     title: "Resize Images",
     description: "Create exact dimensions for forms, websites, profiles, and sharing.",
-    href: "/tools/image-resize",
+    href: "/tools/image-resize#tool-workspace",
     icon: ArrowsClockwise,
     accent: "bg-emerald-100 text-emerald-800",
   },
   {
     title: "Convert Images",
     description: "Switch between JPG, PNG, and WEBP in a few seconds.",
-    href: "/tools/image-convert",
+    href: "/tools/image-convert#tool-workspace",
     icon: Sparkle,
     accent: "bg-amber-100 text-amber-800",
   },
   {
     title: "PDF Tools",
     description: "Merge PDFs and extract the pages you need.",
-    href: "/tools/pdf-merge",
+    href: "/tools/pdf-merge#tool-workspace",
     icon: FilePdf,
     accent: "bg-rose-100 text-rose-800",
   },
@@ -74,17 +73,17 @@ export default function Home() {
       />
 
       <section className="relative z-10 mx-auto grid min-h-[calc(100svh-6.5rem)] w-full max-w-7xl items-center gap-10 px-6 pb-14 pt-8 lg:grid-cols-[1fr_0.9fr] lg:px-8 lg:pb-16 lg:pt-8">
-        <div>
+        <div className="max-w-4xl">
           <Badge variant="outline" className="rounded-full border-emerald-200 bg-white/75 text-emerald-800">
-            <ShieldCheck weight="fill" /> File tools for people who care about control
+            <ShieldCheck weight="fill" /> Fast, focused file tools
           </Badge>
 
-          <h1 className="mt-6 max-w-4xl font-heading text-4xl font-black tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-6xl xl:text-7xl">
-            Beautiful tools to compress, convert, resize, and organize your files.
+          <h1 className="mt-6 max-w-4xl font-heading text-4xl font-black tracking-[-0.04em] text-slate-950 sm:text-5xl lg:text-6xl">
+            Press files into the perfect format.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
-            CompressX brings everyday image and document utilities into one clean workspace, made for fast results and simple decisions.
+          <p className="mt-5 max-w-xl text-base leading-7 text-slate-700 sm:text-lg">
+            BytePress helps you compress, convert, resize, merge, split, and rotate files with a clean workspace built for quick results.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -94,7 +93,7 @@ export default function Home() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="h-12 rounded-full border-slate-300 bg-white/70 px-6 text-sm backdrop-blur">
-              <Link href="/tools/image-compress">Compress image</Link>
+              <Link href="/tools/image-compress#tool-workspace">Compress image</Link>
             </Button>
           </div>
 
@@ -106,18 +105,13 @@ export default function Home() {
           </div>
         </div>
 
-        <Card className="relative overflow-hidden rounded-[2.25rem] border-white/70 bg-white/80 shadow-2xl shadow-slate-900/10 backdrop-blur-xl lg:translate-y-4">
+        <Card className="relative overflow-hidden rounded-[2.25rem] border-white/70 bg-white/82 shadow-2xl shadow-slate-900/10 backdrop-blur-xl lg:translate-y-2">
           <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-300" />
-          <CardHeader className="p-7">
-            <Badge variant="outline" className="w-fit rounded-full bg-white/80">
-              Smart workspace
-            </Badge>
-            <CardTitle className="text-2xl">Pick a file task and finish it fast</CardTitle>
-            <CardDescription>
-              Clear settings, instant previews, file-size summaries, and download-ready outputs.
-            </CardDescription>
+          <CardHeader className="p-6 sm:p-7">
+            <CardTitle className="text-2xl">Your file desk</CardTitle>
+            <CardDescription>Choose a task, drop a file, and download the output.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 p-7 pt-0">
+          <CardContent className="space-y-4 p-6 pt-0 sm:p-7 sm:pt-0">
             <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50/90 p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -125,7 +119,7 @@ export default function Home() {
                     <ImageSquare className="size-6" weight="duotone" />
                   </span>
                   <div>
-                    <p className="font-semibold text-slate-950">Image toolkit</p>
+                    <p className="font-semibold text-slate-950">Images</p>
                     <p className="text-sm text-slate-500">Compress, resize, convert</p>
                   </div>
                 </div>
@@ -134,14 +128,14 @@ export default function Home() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <MiniCard icon={MagicWand} title="Clean controls" text="Only the settings you need." />
-              <MiniCard icon={Scissors} title="PDF workflow" text="Merge and split tools next." />
+              <MiniCard icon={FilePdf} title="PDFs" text="Merge, split, rotate." />
+              <MiniCard icon={LockKey} title="Account" text="More tasks after sign in." />
             </div>
 
             <div className="rounded-[1.5rem] bg-slate-950 p-5 text-white shadow-lg">
               <p className="font-heading text-xl font-black">Designed for everyday files</p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
-                A focused interface for school forms, work documents, social uploads, website assets, and quick sharing.
+                Clean controls, useful previews, and download-first results for everyday file work.
               </p>
             </div>
           </CardContent>
@@ -238,7 +232,7 @@ function MiniCard({
   title,
   text,
 }: {
-  icon: typeof MagicWand
+  icon: typeof FilePdf
   title: string
   text: string
 }) {

@@ -41,7 +41,7 @@ export async function SiteHeader({
         <span className="flex size-12 items-center justify-center rounded-2xl border border-slate-900/10 bg-white/85 shadow-sm backdrop-blur sm:size-13">
           <Stack className="size-6" weight="duotone" />
         </span>
-        CompressX
+        BytePress
       </Link>
 
       {nav?.length ? (

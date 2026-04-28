@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header"
 import { ImageResizeTool } from "./resize-tool"
 
 export const metadata: Metadata = {
-  title: "Image Resizer - CompressX",
+  title: "Image Resizer - BytePress",
   description: "Resize images privately in your browser for forms, websites, and sharing.",
 }
 

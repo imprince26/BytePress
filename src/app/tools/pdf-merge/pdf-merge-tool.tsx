@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { formatBytes } from "@/lib/file-format"
 import { validatePdfFiles } from "@/lib/pdf-tools"
+import { recordRecentJob } from "@/lib/recent-jobs"
 
 type Usage = { limit: number; used: number; remaining: number; requiresLogin: boolean }
 type Result = { url: string; name: string; size: number; pages: number }
@@ -82,6 +83,13 @@ export function PdfMergeTool() {
         const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }))
         resultUrlRef.current = url
         setResult({ url, name: "merged.pdf", size: bytes.byteLength, pages: pageTotal })
+        recordRecentJob({
+          tool: "PDF Merge",
+          fileName: `${files.length} PDFs`,
+          inputBytes,
+          outputBytes: bytes.byteLength,
+          summary: `${pageTotal} pages merged`,
+        })
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : "Could not merge these PDFs.")
       }
@@ -96,7 +104,7 @@ export function PdfMergeTool() {
         <p className="mt-5 text-lg leading-8 text-slate-600">Select PDFs in the order you want and download one finished document.</p>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
         <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
           <CardHeader><CardTitle>Merge settings</CardTitle><CardDescription>Add two or more PDFs.</CardDescription></CardHeader>
           <CardContent className="space-y-6">

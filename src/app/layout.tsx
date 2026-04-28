@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CompressX - Private Image and PDF Tools",
+  title: "BytePress - Image and PDF Tools",
   description:
     "Privacy-focused tools for image compression, image conversion, PDF merge, PDF split, PDF compression, and document conversion.",
 };

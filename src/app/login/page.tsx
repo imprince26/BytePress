@@ -4,8 +4,8 @@ import { SiteHeader } from "@/components/site-header"
 import { LoginForm } from "./login-form"
 
 export const metadata: Metadata = {
-  title: "Sign in - CompressX",
-  description: "Sign in to CompressX and continue using your file tools.",
+  title: "Sign in - BytePress",
+  description: "Sign in to BytePress and continue using your file tools.",
 }
 
 export default function LoginPage() {

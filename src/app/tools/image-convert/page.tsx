@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header"
 import { ImageConvertTool } from "./convert-tool"
 
 export const metadata: Metadata = {
-  title: "Image Converter - CompressX",
+  title: "Image Converter - BytePress",
   description: "Convert images privately in your browser between JPG, PNG, and WEBP.",
 }
 

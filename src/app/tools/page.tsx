@@ -16,7 +16,7 @@ const tools = [
   {
     title: "Image Compress",
     description: "Make images lighter for uploads, websites, and sharing.",
-    href: "/tools/image-compress",
+    href: "/tools/image-compress#tool-workspace",
     icon: ImageSquare,
     accent: "bg-cyan-100 text-cyan-800",
     category: "Image",
@@ -24,7 +24,7 @@ const tools = [
   {
     title: "Image Resize",
     description: "Create exact dimensions without opening design software.",
-    href: "/tools/image-resize",
+    href: "/tools/image-resize#tool-workspace",
     icon: ArrowsClockwise,
     accent: "bg-emerald-100 text-emerald-800",
     category: "Image",
@@ -32,7 +32,7 @@ const tools = [
   {
     title: "Image Convert",
     description: "Switch between JPG, PNG, and WEBP in seconds.",
-    href: "/tools/image-convert",
+    href: "/tools/image-convert#tool-workspace",
     icon: Sparkle,
     accent: "bg-amber-100 text-amber-800",
     category: "Image",
@@ -40,7 +40,7 @@ const tools = [
   {
     title: "PDF Merge",
     description: "Combine multiple PDFs into one clean document.",
-    href: "/tools/pdf-merge",
+    href: "/tools/pdf-merge#tool-workspace",
     icon: FilePdf,
     accent: "bg-rose-100 text-rose-800",
     category: "PDF",
@@ -48,7 +48,7 @@ const tools = [
   {
     title: "PDF Split",
     description: "Extract selected pages into a fresh PDF.",
-    href: "/tools/pdf-split",
+    href: "/tools/pdf-split#tool-workspace",
     icon: FilePdf,
     accent: "bg-violet-100 text-violet-800",
     category: "PDF",
@@ -56,7 +56,7 @@ const tools = [
   {
     title: "PDF Rotate",
     description: "Fix sideways PDF pages and export the corrected file.",
-    href: "/tools/pdf-rotate",
+    href: "/tools/pdf-rotate#tool-workspace",
     icon: ArrowClockwise,
     accent: "bg-orange-100 text-orange-800",
     category: "PDF",

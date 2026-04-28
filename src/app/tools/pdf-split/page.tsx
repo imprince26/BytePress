@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header"
 import { PdfSplitTool } from "./pdf-split-tool"
 
 export const metadata: Metadata = {
-  title: "PDF Split - CompressX",
+  title: "PDF Split - BytePress",
   description: "Extract selected pages from a PDF into a new file.",
 }
 

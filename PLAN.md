@@ -1,8 +1,8 @@
-# CompressX Project Plan
+# BytePress Project Plan
 
 ## Vision
 
-CompressX is a privacy-focused file tools website for personal and trusted-friend use. The product should make common image, PDF, and document conversions fast, beautiful, and safe without forcing users to upload sensitive files to unknown third-party websites.
+BytePress is a privacy-focused file tools website for personal and trusted-friend use. The product should make common image, PDF, and document conversions fast, beautiful, and safe without forcing users to upload sensitive files to unknown third-party websites.
 
 Core promise: files are processed privately, stored only when required for processing, and automatically deleted after completion.
 

@@ -6,8 +6,8 @@ import { env } from "@/env"
 
 export type ToolType = typeof usageEvent.$inferInsert.tool
 
-export const anonymousIdCookie = "compressx_anonymous_id"
-export const localUsageCookie = "compressx_usage"
+export const anonymousIdCookie = "bytepress_anonymous_id"
+export const localUsageCookie = "bytepress_usage"
 
 export function startOfToday() {
   const now = new Date()

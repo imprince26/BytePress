@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
+import { RecentJobs } from "./recent-jobs"
 
 const quickActions = [
   { title: "Compress image", href: "/tools/image-compress", icon: ImageSquare },
@@ -76,6 +77,10 @@ export default async function DashboardPage() {
           <Button asChild className="mt-6 rounded-full bg-white text-slate-950 hover:bg-slate-100">
             <Link href="/tools">Browse tools</Link>
           </Button>
+        </div>
+
+        <div className="mt-6">
+          <RecentJobs />
         </div>
       </section>
     </main>

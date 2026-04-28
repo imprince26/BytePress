@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatBytes } from "@/lib/file-format"
 import { parsePageRanges, validatePdfFiles } from "@/lib/pdf-tools"
+import { recordRecentJob } from "@/lib/recent-jobs"
 
 type Usage = { limit: number; used: number; remaining: number; requiresLogin: boolean }
 type Result = { url: string; name: string; size: number; pages: number }
@@ -97,6 +98,13 @@ export function PdfSplitTool() {
         const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }))
         resultUrlRef.current = url
         setResult({ url, name: file.name.replace(/\.pdf$/i, "-split.pdf"), size: bytes.byteLength, pages: copiedPages.length })
+        recordRecentJob({
+          tool: "PDF Split",
+          fileName: file.name,
+          inputBytes: file.size,
+          outputBytes: bytes.byteLength,
+          summary: `${copiedPages.length} pages extracted`,
+        })
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : "Could not split this PDF.")
       }
@@ -111,7 +119,7 @@ export function PdfSplitTool() {
         <p className="mt-5 text-lg leading-8 text-slate-600">Pick a PDF, enter page ranges, and download a new document.</p>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
         <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
           <CardHeader><CardTitle>Split settings</CardTitle><CardDescription>Use ranges like 1-3, 5, 8-10.</CardDescription></CardHeader>
           <CardContent className="space-y-6">

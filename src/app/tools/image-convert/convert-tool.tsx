@@ -30,6 +30,7 @@ import {
   OutputFormat,
   renderImageToCanvas,
 } from "@/lib/image-tools"
+import { recordRecentJob } from "@/lib/recent-jobs"
 
 type Usage = {
   limit: number
@@ -130,6 +131,13 @@ export function ImageConvertTool() {
           width: canvas.width,
           height: canvas.height,
         })
+        recordRecentJob({
+          tool: "Image Convert",
+          fileName: file.name,
+          inputBytes: file.size,
+          outputBytes: blob.size,
+          summary: `Converted to ${format.split("/")[1].toUpperCase()}`,
+        })
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : "Conversion failed.")
       }
@@ -150,7 +158,7 @@ export function ImageConvertTool() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
+      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
         <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
           <CardHeader>
             <CardTitle>Conversion settings</CardTitle>

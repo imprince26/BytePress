@@ -4,8 +4,8 @@ import { SiteHeader } from "@/components/site-header"
 import { ForgotPasswordForm } from "./forgot-password-form"
 
 export const metadata: Metadata = {
-  title: "Forgot password - CompressX",
-  description: "Request a password reset code for CompressX.",
+  title: "Forgot password - BytePress",
+  description: "Request a password reset code for BytePress.",
 }
 
 export default function ForgotPasswordPage() {

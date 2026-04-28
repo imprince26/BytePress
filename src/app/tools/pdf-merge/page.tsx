@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header"
 import { PdfMergeTool } from "./pdf-merge-tool"
 
 export const metadata: Metadata = {
-  title: "PDF Merge - CompressX",
+  title: "PDF Merge - BytePress",
   description: "Combine multiple PDF files into one clean document.",
 }
 

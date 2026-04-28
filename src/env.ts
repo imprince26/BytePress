@@ -2,7 +2,7 @@ import { z } from "zod"
 
 const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
-  NEXT_PUBLIC_APP_NAME: z.string().default("CompressX"),
+  NEXT_PUBLIC_APP_NAME: z.string().default("BytePress"),
   DATABASE_URL: z.string().optional(),
   AUTH_SECRET: z.string().optional(),
   AUTH_TRUST_HOST: z.string().optional(),
@@ -16,7 +16,7 @@ const envSchema = z.object({
   LOCAL_TEMP_DIR: z.string().default("./tmp/uploads"),
   WORKER_BASE_URL: z.string().url().optional(),
   WORKER_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default("CompressX <hello@princepatel.me>"),
+  EMAIL_FROM: z.string().default("BytePress <hello@princepatel.me>"),
   RESEND_API_KEY: z.string().optional(),
 })
 

@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header"
 import { ImageCompressor } from "./image-compressor"
 
 export const metadata: Metadata = {
-  title: "Image Compressor - CompressX",
+  title: "Image Compressor - BytePress",
   description:
     "Compress images privately in your browser by quality or target file size.",
 }

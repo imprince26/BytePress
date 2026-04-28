@@ -5,8 +5,8 @@ import { SiteHeader } from "@/components/site-header"
 import { ResetPasswordForm } from "./reset-password-form"
 
 export const metadata: Metadata = {
-  title: "Reset password - CompressX",
-  description: "Reset your CompressX password with an email code.",
+  title: "Reset password - BytePress",
+  description: "Reset your BytePress password with an email code.",
 }
 
 export default function ResetPasswordPage() {
