@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BytePress
 
-## Getting Started
+BytePress is a privacy-focused file tools app for quick, everyday work with images and PDFs. It is designed to keep the workflow simple: choose a tool, upload or drop a file, adjust a few settings, and download the result.
 
-First, run the development server:
+The current product centers on fast client-first experiences where practical, with a hybrid processing model for workflows that eventually need server-side support.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## What BytePress Does
+
+BytePress currently provides a focused set of tools for common file tasks:
+
+- Compress images by quality settings or target size.
+- Resize images by exact dimensions or proportional scaling.
+- Convert images between supported formats.
+- Merge PDFs into a single document.
+- Split PDFs into smaller documents.
+- Rotate PDF pages to fix orientation issues.
+- Convert images into PDF output.
+
+The app also includes authentication, a user dashboard, settings, usage tracking, and recent job history for a smoother repeat-workflow experience.
+
+## Tech Stack
+
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui components
+- Drizzle ORM
+- Neon PostgreSQL
+- Better Auth
+- pdf-lib
+- Resend
+- Phosphor Icons
+
+## Key Routes
+
+- `/` - Marketing homepage and entry point.
+- `/tools` - Tool directory.
+- `/tools/image-compress` - Image compression workspace.
+- `/tools/image-resize` - Image resizing workspace.
+- `/tools/image-convert` - Image conversion workspace.
+- `/tools/images-to-pdf` - Image to PDF workspace.
+- `/tools/pdf-merge` - PDF merge workspace.
+- `/tools/pdf-split` - PDF split workspace.
+- `/tools/pdf-rotate` - PDF rotation workspace.
+- `/dashboard` - User dashboard.
+- `/settings` - Account and preferences.
+- `/login` - Sign-in flow.
+- `/forgot-password` - Password reset request.
+- `/reset-password` - Password reset completion.
+
+## Database Model
+
+The project uses Drizzle ORM with a PostgreSQL schema that includes:
+
+- `user`
+- `session`
+- `account`
+- `verification`
+- `usage_event`
+- `file_job`
+- `tool_limit`
+
+These tables support authentication, usage tracking, queued file jobs, and per-tool limit controls.
+
+## Architecture Overview
+
+### Frontend
+
+The UI is built with the Next.js App Router and shadcn/ui components. The design language is intentionally clean and light, with a strong focus on readability, fast task completion, and clear file handling states.
+
+### File Processing
+
+BytePress is structured around a hybrid processing model:
+
+- Browser-side processing is preferred when it is practical and safe.
+- Server-side processing is reserved for workflows that need heavier conversion or job management.
+- Temporary files are expected to be cleaned up automatically after processing.
+
+### Usage and Limits
+
+Usage tracking is built around daily limits for anonymous and signed-in users. The current codebase includes anonymous usage helpers, recent job storage, and the groundwork for job history and quotas.
+
+## Project Structure
+
+```text
+src/
+	app/              App Router pages and API routes
+	components/       Shared UI and layout components
+	db/               Drizzle schema and database entry points
+	lib/              Auth, file, image, PDF, and usage utilities
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Privacy Notes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+BytePress is intended to be a privacy-conscious file utility. The product direction emphasizes minimal retention, temporary processing, and limiting stored metadata to what is needed for functionality, quotas, and basic diagnostics.
