@@ -4,19 +4,18 @@ import { SiteHeader } from "@/components/site-header"
 import { ImageCompressor } from "./image-compressor"
 
 export const metadata: Metadata = {
-  title: "Image Compressor - BytePress",
-  description:
-    "Compress images privately in your browser by quality or target file size.",
+  title: "Compress Images Online - Reduce JPG, PNG & WEBP File Size",
+  description: "Compress photos and digital graphics without visible quality loss. Choose compression quality or target KB sizes.",
 }
 
 export default function ImageCompressPage() {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,oklch(0.94_0.07_176.24),transparent_28rem),linear-gradient(135deg,oklch(0.99_0.014_95.277),oklch(0.96_0.026_95.277))] px-6 py-8 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <SiteHeader className="px-0 lg:px-0" nav={[{ href: "/tools", label: "Tools" }]} />
-
+    <main className="min-h-screen bg-background">
+      <SiteHeader nav={[{ href: "/tools", label: "All Tools" }, { href: "/tools/image-compress", label: "Compress Image" }]} />
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <ImageCompressor />
       </div>
     </main>
   )
 }
+

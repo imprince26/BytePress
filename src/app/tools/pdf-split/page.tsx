@@ -4,15 +4,15 @@ import { SiteHeader } from "@/components/site-header"
 import { PdfSplitTool } from "./pdf-split-tool"
 
 export const metadata: Metadata = {
-  title: "PDF Split - BytePress",
-  description: "Extract selected pages from a PDF into a new file.",
+  title: "Split PDF Online - Extract Pages from PDF",
+  description: "Extract specific pages or page ranges from your PDF document. Fast, accurate, and free.",
 }
 
 export default function PdfSplitPage() {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,oklch(0.94_0.07_176.24),transparent_28rem),linear-gradient(135deg,oklch(0.99_0.014_95.277),oklch(0.96_0.026_95.277))] px-6 py-8 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <SiteHeader className="px-0 lg:px-0" nav={[{ href: "/tools", label: "Tools" }]} />
+    <main className="min-h-screen bg-background">
+      <SiteHeader nav={[{ href: "/tools", label: "All Tools" }, { href: "/tools/pdf-split", label: "Split PDF" }]} />
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <PdfSplitTool />
       </div>
     </main>

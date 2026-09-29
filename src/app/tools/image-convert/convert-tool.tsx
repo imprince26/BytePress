@@ -1,11 +1,14 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { DownloadSimple, ImageSquare, Sparkle } from "@phosphor-icons/react"
+import { ArrowsLeftRight, ImageSquare, Sparkle, WarningCircle } from "@phosphor-icons/react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FileDropzone } from "@/components/file-dropzone"
+import { FileSaveBar } from "@/components/file-save-bar"
+import { ToolProcessingState } from "@/components/tool-skeleton"
 import {
   Card,
   CardContent,
@@ -13,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -32,13 +34,6 @@ import {
 } from "@/lib/image-tools"
 import { recordRecentJob } from "@/lib/recent-jobs"
 
-type Usage = {
-  limit: number
-  used: number
-  remaining: number
-  requiresLogin: boolean
-}
-
 type Result = {
   url: string
   name: string
@@ -50,21 +45,13 @@ type Result = {
 export function ImageConvertTool() {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [format, setFormat] = useState<OutputFormat>("image/jpeg")
+  const [format, setFormat] = useState<OutputFormat>("image/webp")
   const [quality, setQuality] = useState(90)
-  const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const previewUrlRef = useRef<string | null>(null)
   const resultUrlRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    fetch("/api/usage")
-      .then((response) => response.json())
-      .then(setUsage)
-      .catch(() => setUsage(null))
-  }, [])
 
   useEffect(() => {
     return () => {
@@ -83,156 +70,198 @@ export function ImageConvertTool() {
       return
     }
     if (nextFile.size > maxImageUploadBytes) {
-      setError("This file is larger than the current 50 MB limit.")
+      setError("This file is larger than the 50 MB limit.")
       return
     }
 
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
-    const nextPreviewUrl = URL.createObjectURL(nextFile)
-    previewUrlRef.current = nextPreviewUrl
-    setPreviewUrl(nextPreviewUrl)
+    const nextUrl = URL.createObjectURL(nextFile)
+    previewUrlRef.current = nextUrl
+    setPreviewUrl(nextUrl)
     setFile(nextFile)
   }
 
   function convertImage() {
     if (!file) {
-      setError("Choose an image first.")
+      setError("Please select an image first.")
       return
     }
 
     startTransition(async () => {
       try {
         setError(null)
-        const usageResponse = await fetch("/api/usage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tool: "image_convert",
-            inputBytes: file.size,
-            metadata: { format, quality },
-          }),
-        })
-        const nextUsage = await usageResponse.json()
-        setUsage(nextUsage)
-        if (!usageResponse.ok) {
-          setError(nextUsage.message ?? "Please sign in to continue.")
-          return
-        }
-
-        const { canvas } = await renderImageToCanvas(file)
+        const image = await loadImage(file)
+        const { canvas } = await renderImageToCanvas(file, image.naturalWidth, image.naturalHeight)
         const blob = await canvasToBlob(canvas, format, quality / 100)
+
         if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
         const url = URL.createObjectURL(blob)
         resultUrlRef.current = url
-        setResult({
+
+        const nextResult = {
           url,
           name: outputName(file.name, "converted", format),
           size: blob.size,
-          width: canvas.width,
-          height: canvas.height,
-        })
+          width: image.naturalWidth,
+          height: image.naturalHeight,
+        }
+        setResult(nextResult)
+        toast.success(`Converted image to ${format.split("/")[1].toUpperCase()}!`)
+
         recordRecentJob({
           tool: "Image Convert",
           fileName: file.name,
           inputBytes: file.size,
           outputBytes: blob.size,
-          summary: `Converted to ${format.split("/")[1].toUpperCase()}`,
+          summary: `${format.split("/")[1].toUpperCase()}`,
         })
       } catch (caughtError) {
-        setError(caughtError instanceof Error ? caughtError.message : "Conversion failed.")
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Image conversion failed."
+        )
       }
     })
   }
 
   return (
-    <section className="py-14">
+    <section className="py-6 sm:py-8">
       <div className="max-w-3xl">
-        <Badge variant="privacy" className="rounded-full">
-          <Sparkle weight="fill" /> Convert images
+        <Badge variant="outline" className="rounded-md border-primary/30 text-primary bg-primary/5 text-xs font-mono">
+          <ArrowsLeftRight className="size-3.5 mr-1" weight="bold" /> Convert Image
         </Badge>
-        <h1 className="mt-5 font-heading text-5xl font-black tracking-[-0.05em] text-slate-950">
-          Convert images into the right format.
+        <h1 className="mt-3 font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+          Convert images between formats
         </h1>
-        <p className="mt-5 text-lg leading-8 text-slate-600">
-          Prepare images for uploads, websites, messages, and everyday sharing.
+        <p className="mt-2 text-sm sm:text-base leading-relaxed text-muted-foreground">
+          Transform images between JPG, PNG, and WEBP formats with custom quality settings.
         </p>
       </div>
 
-      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader>
-            <CardTitle>Conversion settings</CardTitle>
-            <CardDescription>Choose the output format and final quality.</CardDescription>
+      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Target Format & Quality</CardTitle>
+            <CardDescription className="text-xs">
+              Upload an image file and select your desired output container.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5">
             <div>
-              <Label htmlFor="convert-image">Image file</Label>
-              <div className="mt-2">
-                <FileDropzone id="convert-image" title="Drop an image here" description="Choose the image you want to convert." accept="image/*" onFiles={(files) => chooseFile(files?.[0] ?? null)} />
+              <Label htmlFor="image-convert-file" className="text-xs font-semibold text-foreground">Image File</Label>
+              <div className="mt-1.5">
+                <FileDropzone
+                  id="image-convert-file"
+                  title={file ? file.name : "Drop an image here"}
+                  description={file ? `File size: ${formatBytes(file.size)}` : "PNG, JPG, WEBP, AVIF up to 50 MB"}
+                  accept="image/*"
+                  onFiles={(files) => chooseFile(files?.[0] ?? null)}
+                />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="convert-format">Output format</Label>
-                <Select value={format} onValueChange={(value) => setFormat(value as OutputFormat)}>
-                  <SelectTrigger id="convert-format" className="mt-2 bg-white">
-                    <SelectValue placeholder="Output format" />
+                <Label htmlFor="target-format" className="text-xs font-semibold text-foreground">Target Format</Label>
+                <Select value={format} onValueChange={(val) => setFormat(val as OutputFormat)}>
+                  <SelectTrigger id="target-format" className="mt-1.5 h-10 text-xs bg-background">
+                    <SelectValue placeholder="Format" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="image/webp">WEBP</SelectItem>
-                    <SelectItem value="image/jpeg">JPG</SelectItem>
-                    <SelectItem value="image/png">PNG</SelectItem>
+                    <SelectItem value="image/webp">WEBP (Modern & Lightweight)</SelectItem>
+                    <SelectItem value="image/jpeg">JPG (Universal Compatibility)</SelectItem>
+                    <SelectItem value="image/png">PNG (Lossless Transparency)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="convert-quality">Quality: {quality}%</Label>
-                <Input id="convert-quality" type="range" min="10" max="100" className="mt-2 px-0" value={quality} onChange={(event) => setQuality(Number(event.target.value))} />
-              </div>
-            </div>
 
-            {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
-
-            <Button className="h-12 w-full rounded-full" disabled={!file || isPending || usage?.requiresLogin} onClick={convertImage}>
-              {isPending ? "Converting..." : "Convert image"}
-            </Button>
-            {usage ? <p className="text-center text-xs text-slate-500">Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.</p> : null}
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader>
-            <CardTitle>Preview and result</CardTitle>
-            <CardDescription>Review the output summary before downloading.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-              {result?.url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={result.url} alt="Converted preview" className="aspect-video w-full object-contain" />
-              ) : previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-contain" />
+              {format !== "image/png" ? (
+                <div>
+                  <div className="flex items-center justify-between text-xs">
+                    <Label htmlFor="convert-quality" className="font-semibold text-foreground">Quality</Label>
+                    <span className="font-mono font-bold text-primary">{quality}%</span>
+                  </div>
+                  <input
+                    id="convert-quality"
+                    type="range"
+                    min="30"
+                    max="100"
+                    value={quality}
+                    onChange={(e) => setQuality(Number(e.target.value))}
+                    className="mt-3 w-full accent-primary cursor-pointer"
+                  />
+                </div>
               ) : (
-                <div className="flex aspect-video flex-col items-center justify-center text-slate-500">
-                  <ImageSquare className="size-12" weight="duotone" />
-                  <p className="mt-3 text-sm">No image selected</p>
+                <div className="flex flex-col justify-end text-[11px] text-muted-foreground pb-1">
+                  PNG uses lossless compression automatically.
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Metric label="Original" value={file ? formatBytes(file.size) : "-"} />
-              <Metric label="Output" value={result ? formatBytes(result.size) : "-"} />
-            </div>
-            {result ? (
-              <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-sm font-medium text-emerald-950">Ready: {result.width} x {result.height}px</p>
-                <Button asChild className="mt-4 h-11 w-full rounded-full">
-                  <a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download converted image</a>
-                </Button>
+
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <span>{error}</span>
               </div>
-            ) : null}
+            )}
+
+            <Button
+              type="button"
+              onClick={convertImage}
+              disabled={!file || isPending}
+              className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            >
+              <Sparkle className="size-4" weight="fill" />
+              <span>{isPending ? "Converting Image..." : `Convert to ${format.split("/")[1].toUpperCase()}`}</span>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Right Column */}
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Preview & Output</CardTitle>
+            <CardDescription className="text-xs">
+              Review converted format and save directly to your computer.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {isPending ? (
+              <ToolProcessingState
+                title="Converting Image..."
+                description="Encoding format structures and writing target output."
+              />
+            ) : (
+              <>
+                <div className="overflow-hidden rounded-xl border border-border bg-muted/20 p-2">
+                  {previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={result ? result.url : previewUrl}
+                      alt="Image preview"
+                      className="aspect-video w-full object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className="flex aspect-video flex-col items-center justify-center text-muted-foreground">
+                      <ImageSquare className="size-10 text-muted-foreground/40 mb-2" weight="duotone" />
+                      <p className="text-xs">No image selected</p>
+                    </div>
+                  )}
+                </div>
+
+                {result ? (
+                  <FileSaveBar
+                    fileUrl={result.url}
+                    defaultFileName={result.name}
+                    fileSize={result.size}
+                    originalSize={file ? file.size : undefined}
+                    mimeType={format}
+                    isPdf={false}
+                  />
+                ) : null}
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -240,6 +269,18 @@ export function ImageConvertTool() {
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl border border-slate-200 bg-white p-4"><div className="text-xs uppercase tracking-wide text-slate-500">{label}</div><div className="mt-1 font-heading text-lg font-black text-slate-950">{value}</div></div>
+function loadImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(image)
+    }
+    image.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error("Could not load image."))
+    }
+    image.src = url
+  })
 }

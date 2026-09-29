@@ -1,35 +1,34 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { DownloadSimple, FilePdf, Scissors } from "@phosphor-icons/react"
+import {
+  FilePdf,
+  Scissors,
+  WarningCircle,
+} from "@phosphor-icons/react"
 import { PDFDocument } from "pdf-lib"
+import { toast } from "sonner"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FileDropzone } from "@/components/file-dropzone"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileDropzone } from "@/components/file-dropzone"
+import { FileSaveBar } from "@/components/file-save-bar"
+import { ToolProcessingState } from "@/components/tool-skeleton"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatBytes } from "@/lib/file-format"
 import { parsePageRanges, validatePdfFiles } from "@/lib/pdf-tools"
-import { recordRecentJob } from "@/lib/recent-jobs"
 
-type Usage = { limit: number; used: number; remaining: number; requiresLogin: boolean }
 type Result = { url: string; name: string; size: number; pages: number }
 
 export function PdfSplitTool() {
   const [file, setFile] = useState<File | null>(null)
   const [pageCount, setPageCount] = useState<number | null>(null)
   const [range, setRange] = useState("1")
-  const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const resultUrlRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    fetch("/api/usage").then((response) => response.json()).then(setUsage).catch(() => setUsage(null))
-  }, [])
 
   useEffect(() => {
     return () => {
@@ -53,11 +52,13 @@ export function PdfSplitTool() {
     if (nextFile) {
       startTransition(async () => {
         try {
-          const pdf = await PDFDocument.load(await nextFile.arrayBuffer())
+          const pdf = await PDFDocument.load(await nextFile.arrayBuffer(), {
+            ignoreEncryption: true,
+          })
           setPageCount(pdf.getPageCount())
           setRange(`1-${pdf.getPageCount()}`)
         } catch {
-          setError("Could not read this PDF.")
+          setError("Could not parse this PDF.")
         }
       })
     }
@@ -65,7 +66,7 @@ export function PdfSplitTool() {
 
   function splitPdf() {
     if (!file || !pageCount) {
-      setError("Choose a PDF first.")
+      setError("Please choose a PDF document first.")
       return
     }
 
@@ -73,38 +74,38 @@ export function PdfSplitTool() {
       try {
         setError(null)
         const selectedPages = parsePageRanges(range, pageCount)
-        const usageResponse = await fetch("/api/usage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tool: "pdf_split", inputBytes: file.size, metadata: { pages: selectedPages.length, range } }),
-        })
-        const nextUsage = await usageResponse.json()
-        setUsage(nextUsage)
-        if (!usageResponse.ok) {
-          setError(nextUsage.message ?? "Please sign in to continue.")
+
+        if (!selectedPages.length) {
+          setError("Please specify at least one valid page to extract.")
           return
         }
 
-        const source = await PDFDocument.load(await file.arrayBuffer())
+        const source = await PDFDocument.load(await file.arrayBuffer(), {
+          ignoreEncryption: true,
+        })
         const output = await PDFDocument.create()
         const copiedPages = await output.copyPages(source, selectedPages)
         copiedPages.forEach((page) => output.addPage(page))
-        const bytes = await output.save()
+
+        const bytes = await output.save({ useObjectStreams: true })
         if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
+
         const pdfBytes = bytes.buffer.slice(
           bytes.byteOffset,
           bytes.byteOffset + bytes.byteLength
         ) as ArrayBuffer
+
         const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }))
         resultUrlRef.current = url
-        setResult({ url, name: file.name.replace(/\.pdf$/i, "-split.pdf"), size: bytes.byteLength, pages: copiedPages.length })
-        recordRecentJob({
-          tool: "PDF Split",
-          fileName: file.name,
-          inputBytes: file.size,
-          outputBytes: bytes.byteLength,
-          summary: `${copiedPages.length} pages extracted`,
+
+        const baseName = file.name.replace(/\.pdf$/i, "")
+        setResult({
+          url,
+          name: `${baseName}-split.pdf`,
+          size: bytes.byteLength,
+          pages: copiedPages.length,
         })
+        toast.success(`Extracted ${copiedPages.length} pages!`)
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : "Could not split this PDF.")
       }
@@ -112,29 +113,118 @@ export function PdfSplitTool() {
   }
 
   return (
-    <section className="py-14">
-      <div className="max-w-3xl">
-        <Badge variant="privacy" className="rounded-full"><Scissors weight="fill" /> PDF split</Badge>
-        <h1 className="mt-5 font-heading text-5xl font-black tracking-[-0.05em] text-slate-950">Extract the pages you need.</h1>
-        <p className="mt-5 text-lg leading-8 text-slate-600">Pick a PDF, enter page ranges, and download a new document.</p>
+    <section className="space-y-6">
+      {/* Tool Header */}
+      <div className="space-y-1.5">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Split PDF Files
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Extract specific pages or page ranges from your document.
+        </p>
       </div>
 
-      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader><CardTitle>Split settings</CardTitle><CardDescription>Use ranges like 1-3, 5, 8-10.</CardDescription></CardHeader>
-          <CardContent className="space-y-6">
-            <div><Label htmlFor="pdf">PDF file</Label><div className="mt-2"><FileDropzone id="pdf" title="Drop a PDF here" description="Choose the PDF you want to split." accept="application/pdf,.pdf" onFiles={(files) => chooseFile(files?.[0] ?? null)} /></div></div>
-            <div><Label htmlFor="range">Pages {pageCount ? `(1-${pageCount})` : ""}</Label><Input id="range" className="mt-2 bg-white" value={range} onChange={(event) => setRange(event.target.value)} placeholder="1-3, 5" /></div>
-            {file ? <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600"><span className="font-semibold text-slate-950">{file.name}</span><br />{formatBytes(file.size)}{pageCount ? ` • ${pageCount} pages` : ""}</div> : null}
-            {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
-            <Button className="h-12 w-full rounded-full" disabled={!file || !pageCount || isPending || usage?.requiresLogin} onClick={splitPdf}>{isPending ? "Preparing..." : "Split PDF"}</Button>
-            {usage ? <p className="text-center text-xs text-slate-500">Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.</p> : null}
+      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-bold">Document & Range</CardTitle>
+            <CardDescription className="text-xs">
+              Upload a PDF document and specify which pages to extract.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FileDropzone
+              id="pdf-split-input"
+              title={file ? file.name : "Select or drop a PDF file"}
+              description={file ? `${formatBytes(file.size)} ${pageCount ? `• ${pageCount} pages` : ""}` : "PDF files up to 50 MB"}
+              accept="application/pdf"
+              onFiles={(files) => chooseFile(files?.[0] ?? null)}
+            />
+
+            <div>
+              <div className="flex items-center justify-between text-xs">
+                <Label htmlFor="range" className="font-semibold text-foreground">
+                  Page Selection
+                </Label>
+                {pageCount !== null && (
+                  <span className="text-[11px] font-mono text-muted-foreground">
+                    Total: {pageCount} pages
+                  </span>
+                )}
+              </div>
+              <Input
+                id="range"
+                value={range}
+                onChange={(e) => setRange(e.target.value)}
+                placeholder="e.g. 1-3, 5, 8-10"
+                className="mt-1 h-9 text-xs bg-background font-mono"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Example: <code className="bg-muted px-1 py-0.5 rounded text-[10px]">1-4</code> for consecutive pages, or <code className="bg-muted px-1 py-0.5 rounded text-[10px]">1, 3, 5-7</code> for custom selections.
+              </p>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={splitPdf}
+              disabled={!file || !pageCount || isPending}
+              className="h-10 w-full rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            >
+              <Scissors className="size-4" weight="bold" />
+              <span>{isPending ? "Extracting Pages..." : "Extract Pages"}</span>
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader><CardTitle>Result</CardTitle><CardDescription>Download when ready.</CardDescription></CardHeader>
-          <CardContent className="space-y-5"><div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 text-center text-slate-500">{result ? <iframe src={result.url} title="Split PDF preview" className="aspect-video w-full" /> : <div className="flex aspect-video flex-col items-center justify-center"><FilePdf className="size-12" weight="duotone" /><p className="mt-3 text-sm">Your split PDF will appear here.</p></div>}</div>{result ? <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4"><p className="text-sm font-medium text-emerald-950">{result.pages} pages ready: {formatBytes(result.size)}</p><Button asChild className="mt-4 h-11 w-full rounded-full"><a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download PDF</a></Button></div> : null}</CardContent>
+        {/* Right Column */}
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-bold">Extracted Document</CardTitle>
+            <CardDescription className="text-xs">
+              Preview and save the extracted pages.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isPending ? (
+              <ToolProcessingState
+                title="Extracting pages..."
+                description="Creating new document with selected pages."
+              />
+            ) : result ? (
+              <>
+                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                    <FilePdf className="size-5" weight="duotone" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{formatBytes(result.size)} • {result.pages} pages</p>
+                  </div>
+                </div>
+
+                <FileSaveBar
+                  fileUrl={result.url}
+                  defaultFileName={result.name}
+                  fileSize={result.size}
+                  originalSize={file ? file.size : undefined}
+                  mimeType="application/pdf"
+                  isPdf={true}
+                />
+              </>
+            ) : (
+              <div className="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+                <Scissors className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                Specify page numbers and click &quot;Extract Pages&quot; to review the output file.
+              </div>
+            )}
+          </CardContent>
         </Card>
       </div>
     </section>

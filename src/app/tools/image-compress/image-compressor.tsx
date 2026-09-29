@@ -1,18 +1,15 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { DownloadSimple, ImageSquare, LockKey, WarningCircle } from "@phosphor-icons/react"
+import { ImageSquare, Sparkle, WarningCircle } from "@phosphor-icons/react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FileDropzone } from "@/components/file-dropzone"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { FileSaveBar } from "@/components/file-save-bar"
+import { ToolProcessingState } from "@/components/tool-skeleton"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -22,17 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { formatBytes } from "@/lib/file-format"
 import { recordRecentJob } from "@/lib/recent-jobs"
 
 type OutputFormat = "image/jpeg" | "image/webp" | "image/png"
 type CompressionMode = "quality" | "target"
-
-type Usage = {
-  limit: number
-  used: number
-  remaining: number
-  requiresLogin: boolean
-}
 
 type Result = {
   url: string
@@ -52,28 +43,15 @@ export function ImageCompressor() {
   const [mode, setMode] = useState<CompressionMode>("quality")
   const [format, setFormat] = useState<OutputFormat>("image/jpeg")
   const [result, setResult] = useState<Result | null>(null)
-  const [usage, setUsage] = useState<Usage | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const previewUrlRef = useRef<string | null>(null)
   const resultUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
-    fetch("/api/usage")
-      .then((response) => response.json())
-      .then(setUsage)
-      .catch(() => setUsage(null))
-  }, [])
-
-  useEffect(() => {
     return () => {
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current)
-      }
-
-      if (resultUrlRef.current) {
-        URL.revokeObjectURL(resultUrlRef.current)
-      }
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+      if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
     }
   }, [])
 
@@ -86,7 +64,6 @@ export function ImageCompressor() {
         URL.revokeObjectURL(previewUrlRef.current)
         previewUrlRef.current = null
       }
-
       setFile(null)
       setPreviewUrl(null)
       return
@@ -98,7 +75,7 @@ export function ImageCompressor() {
     }
 
     if (nextFile.size > maxUploadBytes) {
-      setError("This file is larger than the current 50 MB limit.")
+      setError("This file is larger than the 50 MB limit.")
       return
     }
 
@@ -119,32 +96,8 @@ export function ImageCompressor() {
     }
 
     setError(null)
-
     startTransition(async () => {
       try {
-        const usageResponse = await fetch("/api/usage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tool: "image_compress",
-            inputBytes: file.size,
-            metadata: {
-              mode,
-              format,
-              quality,
-              targetKb: mode === "target" ? targetKb : undefined,
-            },
-          }),
-        })
-
-        const nextUsage = await usageResponse.json()
-        setUsage(nextUsage)
-
-        if (!usageResponse.ok) {
-          setError(nextUsage.message ?? "Please sign in to continue.")
-          return
-        }
-
         const compressed = await compressImage({
           file,
           mode,
@@ -159,6 +112,8 @@ export function ImageCompressor() {
 
         resultUrlRef.current = compressed.url
         setResult(compressed)
+        toast.success("Image compressed successfully!")
+
         recordRecentJob({
           tool: "Image Compress",
           fileName: file.name,
@@ -176,60 +131,64 @@ export function ImageCompressor() {
     })
   }
 
-  const savings = result && file ? Math.max(0, 1 - result.size / file.size) : 0
-
   return (
-    <section className="py-14">
+    <section className="py-6 sm:py-8">
       <div className="max-w-3xl">
-        <Badge variant="privacy" className="rounded-full">
-          <LockKey weight="fill" /> Image compressor
+        <Badge variant="outline" className="rounded-md border-primary/30 text-primary bg-primary/5 text-xs font-mono">
+          <ImageSquare className="size-3.5 mr-1" weight="bold" /> Compress Image
         </Badge>
-        <h1 className="mt-5 font-heading text-5xl font-black tracking-[-0.05em] text-slate-950">
-          Make images lighter and easier to share.
+        <h1 className="mt-3 font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+          Compress and optimize images
         </h1>
-        <p className="mt-5 text-lg leading-8 text-slate-600">
-          Choose the result you want, preview the savings, and download a cleaner file.
+        <p className="mt-2 text-sm sm:text-base leading-relaxed text-muted-foreground">
+          Reduce image file sizes for websites, applications, and documents while maintaining crisp visual clarity.
         </p>
       </div>
 
-      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader>
-            <CardTitle>Image settings</CardTitle>
-            <CardDescription>
-              Pick a format and control how small the image should be.
+      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Image Settings</CardTitle>
+            <CardDescription className="text-xs">
+              Upload an image and adjust quality or target size settings.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5">
             <div>
-              <Label htmlFor="image">Image file</Label>
-              <div className="mt-2">
-                <FileDropzone id="image" title="Drop an image here" description="PNG, JPG, WEBP, AVIF and other browser-supported image files." accept="image/*" onFiles={(files) => onFileChange(files?.[0] ?? null)} />
+              <Label htmlFor="image" className="text-xs font-semibold text-foreground">Image File</Label>
+              <div className="mt-1.5">
+                <FileDropzone
+                  id="image"
+                  title={file ? file.name : "Drop an image here"}
+                  description={file ? `Original size: ${formatBytes(file.size)}` : "PNG, JPG, WEBP, AVIF up to 50 MB"}
+                  accept="image/*"
+                  onFiles={(files) => onFileChange(files?.[0] ?? null)}
+                />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="mode">Compression mode</Label>
+                <Label htmlFor="mode" className="text-xs font-semibold text-foreground">Mode</Label>
                 <Select value={mode} onValueChange={(value) => setMode(value as CompressionMode)}>
-                  <SelectTrigger id="mode" className="mt-2 bg-white">
+                  <SelectTrigger id="mode" className="mt-1.5 h-10 text-xs bg-background">
                     <SelectValue placeholder="Compression mode" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="quality">Quality percentage</SelectItem>
-                    <SelectItem value="target">Target file size</SelectItem>
+                    <SelectItem value="quality">Quality Percentage</SelectItem>
+                    <SelectItem value="target">Target File Size</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="format">Output format</Label>
+                <Label htmlFor="format" className="text-xs font-semibold text-foreground">Output Format</Label>
                 <Select value={format} onValueChange={(value) => setFormat(value as OutputFormat)}>
-                  <SelectTrigger id="format" className="mt-2 bg-white">
+                  <SelectTrigger id="format" className="mt-1.5 h-10 text-xs bg-background">
                     <SelectValue placeholder="Output format" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="image/webp">WEBP</SelectItem>
+                    <SelectItem value="image/webp">WEBP (Optimized)</SelectItem>
                     <SelectItem value="image/jpeg">JPG</SelectItem>
                     <SelectItem value="image/png">PNG</SelectItem>
                   </SelectContent>
@@ -238,129 +197,128 @@ export function ImageCompressor() {
             </div>
 
             {mode === "quality" ? (
-              <div>
-                <div className="flex items-center justify-between gap-4">
-                  <Label htmlFor="quality">Quality</Label>
-                  <span className="font-heading text-sm font-black">{quality}%</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <Label htmlFor="quality" className="font-semibold text-foreground">Compression Quality</Label>
+                  <span className="font-mono font-bold text-primary">{quality}%</span>
                 </div>
-                <Input
+                <input
                   id="quality"
                   type="range"
-                  min="10"
-                  max="100"
+                  min="20"
+                  max="95"
+                  step="1"
                   value={quality}
-                  className="mt-2 px-0"
-                  onChange={(event) => setQuality(Number(event.target.value))}
+                  onChange={(e) => setQuality(Number(e.target.value))}
+                  className="w-full accent-primary cursor-pointer"
                 />
               </div>
             ) : (
-              <div>
-                <Label htmlFor="target">Target size in KB</Label>
+              <div className="space-y-2">
+                <Label htmlFor="targetKb" className="text-xs font-semibold text-foreground">Target Size (KB)</Label>
                 <Input
-                  id="target"
+                  id="targetKb"
                   type="number"
-                  min="20"
+                  min="10"
+                  max="20000"
                   value={targetKb}
-                  className="mt-2 bg-white"
-                  onChange={(event) => setTargetKb(Number(event.target.value))}
+                  onChange={(e) => setTargetKb(Math.max(10, Number(e.target.value)))}
+                  className="h-10 text-xs bg-background"
                 />
-                {format === "image/png" ? (
-                  <p className="mt-2 flex items-center gap-2 text-xs text-amber-700">
-                    <WarningCircle className="size-4" /> PNG target-size compression is limited by browser support. WEBP or JPG is recommended.
-                  </p>
-                ) : null}
               </div>
             )}
 
-            {error ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-                {error}
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <span>{error}</span>
               </div>
-            ) : null}
+            )}
 
             <Button
-              className="h-12 w-full rounded-full"
-              disabled={!file || isPending || usage?.requiresLogin}
+              type="button"
               onClick={compressSelectedImage}
+              disabled={!file || isPending}
+              className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             >
-              {isPending ? "Compressing..." : "Compress image"}
+              <Sparkle className="size-4" weight="fill" />
+              <span>{isPending ? "Compressing Image..." : "Compress Image"}</span>
             </Button>
-
-            {usage ? (
-              <p className="text-center text-xs text-slate-500">
-                Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.
-              </p>
-            ) : null}
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader>
-            <CardTitle>Preview and result</CardTitle>
-            <CardDescription>
-              Compare original and compressed output before downloading.
+        {/* Right Column: Preview & Save */}
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Preview & Output</CardTitle>
+            <CardDescription className="text-xs">
+              Review compressed image metrics and save to your preferred directory.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-              {result?.url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={result.url} alt="Compressed preview" className="aspect-video w-full object-contain" />
-              ) : previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-contain" />
-              ) : (
-                <div className="flex aspect-video flex-col items-center justify-center text-slate-500">
-                  <ImageSquare className="size-12" weight="duotone" />
-                  <p className="mt-3 text-sm">No image selected</p>
+            {isPending ? (
+              <ToolProcessingState
+                title="Compressing Image..."
+                description="Encoding pixels and optimizing binary output streams."
+              />
+            ) : (
+              <>
+                <div className="overflow-hidden rounded-xl border border-border bg-muted/20 p-2">
+                  {previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={result ? result.url : previewUrl}
+                      alt="Image preview"
+                      className="aspect-video w-full object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className="flex aspect-video flex-col items-center justify-center text-muted-foreground">
+                      <ImageSquare className="size-10 text-muted-foreground/40 mb-2" weight="duotone" />
+                      <p className="text-xs">No image selected</p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <ResultMetric label="Original" value={file ? formatBytes(file.size) : "-"} />
-              <ResultMetric label="Output" value={result ? formatBytes(result.size) : "-"} />
-              <ResultMetric label="Saved" value={result ? `${Math.round(savings * 100)}%` : "-"} />
-            </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Original</p>
+                    <p className="mt-1 text-xs font-bold font-mono text-foreground">
+                      {file ? formatBytes(file.size) : "-"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Output</p>
+                    <p className="mt-1 text-xs font-bold font-mono text-foreground">
+                      {result ? formatBytes(result.size) : "-"}
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-background p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Saved</p>
+                    <p className="mt-1 text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                      {result && file
+                        ? `${Math.round(Math.max(0, 1 - result.size / file.size) * 100)}%`
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
 
-            {result ? (
-              <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-sm font-medium text-emerald-950">
-                  Ready: {result.width} x {result.height}px, {formatBytes(result.size)}
-                </p>
-                <Button asChild className="mt-4 h-11 w-full rounded-full">
-                  <a href={result.url} download={result.name}>
-                    <DownloadSimple className="size-4" /> Download compressed image
-                  </a>
-                </Button>
-              </div>
-            ) : null}
+                {result ? (
+                  <FileSaveBar
+                    fileUrl={result.url}
+                    defaultFileName={result.name}
+                    fileSize={result.size}
+                    originalSize={file ? file.size : undefined}
+                    mimeType={format}
+                    isPdf={false}
+                  />
+                ) : null}
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
     </section>
   )
-}
-
-function ResultMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-      <div className="mt-1 font-heading text-lg font-black text-slate-950">{value}</div>
-    </div>
-  )
-}
-
-function formatBytes(bytes: number) {
-  if (bytes < 1024) {
-    return `${bytes} B`
-  }
-
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`
-  }
-
-  return `${(bytes / 1024 / 1024).toFixed(2)} MB`
 }
 
 async function compressImage(input: {
@@ -377,7 +335,7 @@ async function compressImage(input: {
 
   const context = canvas.getContext("2d")
   if (!context) {
-    throw new Error("Your browser could not create an image canvas.")
+    throw new Error("Browser could not create canvas context.")
   }
 
   context.drawImage(image, 0, 0)
@@ -420,7 +378,6 @@ function canvasToBlob(canvas: HTMLCanvasElement, format: OutputFormat, quality: 
           reject(new Error("Could not create compressed output."))
           return
         }
-
         resolve(blob)
       },
       format,
@@ -435,10 +392,7 @@ async function compressToTarget(
   targetBytes: number
 ) {
   let bestBlob = await canvasToBlob(canvas, format, 0.82)
-
-  if (format === "image/png") {
-    return bestBlob
-  }
+  if (format === "image/png") return bestBlob
 
   let low = 0.1
   let high = 0.95
@@ -461,6 +415,5 @@ async function compressToTarget(
 function outputName(name: string, format: OutputFormat) {
   const extension = format === "image/jpeg" ? "jpg" : format.split("/")[1]
   const base = name.replace(/\.[^.]+$/, "")
-
   return `${base}-compressed.${extension}`
 }

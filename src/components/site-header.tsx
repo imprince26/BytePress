@@ -1,77 +1,69 @@
 import Link from "next/link"
-import { headers } from "next/headers"
-import { Stack } from "@phosphor-icons/react/dist/ssr"
+import { Cpu, Lightning } from "@phosphor-icons/react/dist/ssr"
 
 import { Button } from "@/components/ui/button"
-import { SignOutButton } from "@/components/sign-out-button"
-import { auth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 
-type SiteHeaderProps = {
+interface SiteHeaderProps {
   className?: string
-  nav?: { href: string; label: string }[]
   compactActions?: boolean
-  hideAuthAction?: boolean
+  nav?: { href: string; label: string }[]
 }
 
-async function getCurrentSession() {
-  try {
-    return await auth.api.getSession({ headers: await headers() })
-  } catch {
-    return null
-  }
-}
-
-export async function SiteHeader({
-  className,
-  nav,
-  compactActions = false,
-  hideAuthAction = false,
-}: SiteHeaderProps) {
-  const session = await getCurrentSession()
-
+export function SiteHeader({ className, compactActions = false, nav }: SiteHeaderProps) {
   return (
     <header
       className={cn(
-        "relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between gap-6 px-6 py-6 lg:px-8",
+        "relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 sm:py-5 lg:px-8",
         className
       )}
     >
-      <Link href="/" className="flex items-center gap-3 font-heading text-2xl font-black tracking-[-0.04em] text-slate-950 sm:text-3xl">
-        <span className="flex size-12 items-center justify-center rounded-2xl border border-slate-900/10 bg-white/85 shadow-sm backdrop-blur sm:size-13">
-          <Stack className="size-6" weight="duotone" />
+      {/* Brand logo */}
+      <Link
+        href="/"
+        className="group flex items-center gap-2.5 font-heading text-xl font-bold tracking-tight text-foreground transition-opacity hover:opacity-90 sm:text-2xl"
+      >
+        <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-transform group-hover:scale-105">
+          <Cpu className="size-5" weight="bold" />
         </span>
-        BytePress
+        <span>BytePress</span>
       </Link>
 
-      {nav?.length ? (
-        <nav className="hidden items-center gap-8 text-[15px] font-semibold text-slate-700 md:flex">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-slate-950">
+      {/* Primary navigation */}
+      <nav className="hidden items-center gap-7 text-xs font-semibold uppercase tracking-wider text-muted-foreground md:flex">
+        {nav && nav.length > 0 ? (
+          nav.map((item) => (
+            <Link key={item.href} href={item.href} className="transition-colors hover:text-foreground">
               {item.label}
             </Link>
-          ))}
-        </nav>
-      ) : null}
-
-      <div className="flex items-center gap-3">
-        {session ? (
+          ))
+        ) : (
           <>
-            <Button asChild variant="outline" className="hidden h-11 rounded-full bg-white/75 px-5 text-sm sm:inline-flex">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-            <Button asChild variant="outline" className="hidden h-11 rounded-full bg-white/75 px-5 text-sm lg:inline-flex">
-              <Link href="/settings">Settings</Link>
-            </Button>
-            <SignOutButton />
+            <Link href="/tools" className="transition-colors hover:text-foreground">
+              All Tools
+            </Link>
+          
+            <Link href="/#workflow" className="transition-colors hover:text-foreground">
+              Workflow
+            </Link>
           </>
-        ) : !hideAuthAction ? (
-          <Button asChild variant="outline" className="hidden h-11 rounded-full bg-white/75 px-5 text-sm sm:inline-flex">
-            <Link href="/login">Sign in</Link>
-          </Button>
-        ) : null}
-        <Button asChild className={cn("h-11 rounded-full px-5 text-sm", compactActions && "hidden sm:inline-flex")}>
-          <Link href="/tools">Open tools</Link>
+        )}
+      </nav>
+
+      {/* Header action */}
+      <div className="flex items-center gap-2.5">
+        <Button
+          asChild
+          size="sm"
+          className={cn(
+            "h-9 px-4 text-xs font-semibold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg",
+            compactActions && "hidden sm:inline-flex"
+          )}
+        >
+          <Link href="/tools">
+            <Lightning className="size-3.5" weight="fill" />
+            <span>Open Tools</span>
+          </Link>
         </Button>
       </div>
     </header>

@@ -1,125 +1,120 @@
-import { cookies } from "next/headers"
+import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-import {
-  anonymousIdCookie,
-  getAnonymousDailyLimit,
-  getAnonymousUsageCount,
-  localUsageCookie,
-  parseLocalUsage,
-  recordAnonymousUsage,
-} from "@/lib/usage"
+/**
+ * Sliding window IP-based rate limiter for tools that require server-side computation.
+ * Browser-processed tools have zero usage restrictions or login gates.
+ */
 
-const usageSchema = z.object({
-  tool: z.enum([
-    "image_compress",
-    "image_convert",
-    "image_resize",
-    "pdf_merge",
-    "pdf_split",
-    "pdf_compress",
-    "pdf_to_word",
-    "word_to_pdf",
-  ]),
+interface RateLimitRecord {
+  count: number
+  resetTime: number
+}
+
+// In-memory sliding window cache
+const ipRateLimitMap = new Map<string, RateLimitRecord>()
+
+const WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+const MAX_REQUESTS_PER_WINDOW = 60 // 60 server operations per 15 min per IP
+
+// Periodically clean expired records to prevent memory leak
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, record] of ipRateLimitMap.entries()) {
+    if (now > record.resetTime) {
+      ipRateLimitMap.delete(ip)
+    }
+  }
+}, 5 * 60 * 1000)
+
+const serverToolSchema = z.object({
+  tool: z.string(),
   inputBytes: z.number().int().nonnegative().optional(),
-  outputBytes: z.number().int().nonnegative().optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
-function cookieOptions() {
-  return {
-    httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
+async function getClientIp(): Promise<string> {
+  const headerList = await headers()
+  const forwarded = headerList.get("x-forwarded-for")
+  if (forwarded) {
+    return forwarded.split(",")[0].trim()
   }
+  return (
+    headerList.get("x-real-ip") ||
+    headerList.get("cf-connecting-ip") ||
+    "127.0.0.1"
+  )
 }
 
 export async function GET() {
-  const cookieStore = await cookies()
-  const anonymousId =
-    cookieStore.get(anonymousIdCookie)?.value ?? crypto.randomUUID()
-  const limit = getAnonymousDailyLimit()
-  const dbCount = await getAnonymousUsageCount(anonymousId)
-  const localUsage = parseLocalUsage(cookieStore.get(localUsageCookie)?.value)
-  const used = dbCount ?? localUsage.count
+  const ip = await getClientIp()
+  const now = Date.now()
+  const record = ipRateLimitMap.get(ip)
 
-  const response = NextResponse.json({
-    limit,
-    used,
-    remaining: Math.max(limit - used, 0),
-    requiresLogin: used >= limit,
+  const used = record && now < record.resetTime ? record.count : 0
+  const remaining = Math.max(0, MAX_REQUESTS_PER_WINDOW - used)
+
+  return NextResponse.json({
+    status: "ok",
+    browserToolsUnlimited: true,
+    serverRateLimit: {
+      limit: MAX_REQUESTS_PER_WINDOW,
+      used,
+      remaining,
+      windowMinutes: 15,
+    },
   })
-
-  response.cookies.set(anonymousIdCookie, anonymousId, {
-    ...cookieOptions(),
-    maxAge: 60 * 60 * 24 * 365,
-  })
-
-  return response
 }
 
 export async function POST(request: Request) {
-  const parsed = usageSchema.safeParse(await request.json())
+  try {
+    const body = await request.json().catch(() => ({}))
+    const parsed = serverToolSchema.safeParse(body)
 
-  if (!parsed.success) {
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid tool payload" },
+        { status: 400 }
+      )
+    }
+
+    const ip = await getClientIp()
+    const now = Date.now()
+    const record = ipRateLimitMap.get(ip)
+
+    if (record && now < record.resetTime) {
+      if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+        const retryAfterSeconds = Math.ceil((record.resetTime - now) / 1000)
+        return NextResponse.json(
+          {
+            error: "Rate limit exceeded. Please wait before processing more server-intensive tasks.",
+            retryAfter: retryAfterSeconds,
+          },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": retryAfterSeconds.toString(),
+            },
+          }
+        )
+      }
+      record.count += 1
+    } else {
+      ipRateLimitMap.set(ip, {
+        count: 1,
+        resetTime: now + WINDOW_MS,
+      })
+    }
+
+    const currentRecord = ipRateLimitMap.get(ip)!
+    return NextResponse.json({
+      success: true,
+      remaining: Math.max(0, MAX_REQUESTS_PER_WINDOW - currentRecord.count),
+    })
+  } catch {
     return NextResponse.json(
-      { message: "Invalid usage payload" },
-      { status: 400 }
+      { error: "Server rate limiting error" },
+      { status: 500 }
     )
   }
-
-  const cookieStore = await cookies()
-  const anonymousId =
-    cookieStore.get(anonymousIdCookie)?.value ?? crypto.randomUUID()
-  const limit = getAnonymousDailyLimit()
-  const dbCount = await getAnonymousUsageCount(anonymousId)
-  const localUsage = parseLocalUsage(cookieStore.get(localUsageCookie)?.value)
-  const used = dbCount ?? localUsage.count
-
-  if (used >= limit) {
-    const response = NextResponse.json(
-      {
-        limit,
-        used,
-        remaining: 0,
-        requiresLogin: true,
-        message: "Daily anonymous limit reached. Please sign in to continue.",
-      },
-      { status: 429 }
-    )
-    response.cookies.set(anonymousIdCookie, anonymousId, {
-      ...cookieOptions(),
-      maxAge: 60 * 60 * 24 * 365,
-    })
-    return response
-  }
-
-  await recordAnonymousUsage({
-    anonymousId,
-    ...parsed.data,
-  })
-
-  const nextUsed = used + 1
-  const response = NextResponse.json({
-    limit,
-    used: nextUsed,
-    remaining: Math.max(limit - nextUsed, 0),
-    requiresLogin: nextUsed >= limit,
-  })
-
-  response.cookies.set(anonymousIdCookie, anonymousId, {
-    ...cookieOptions(),
-    maxAge: 60 * 60 * 24 * 365,
-  })
-
-  if (dbCount === null) {
-    response.cookies.set(localUsageCookie, `${localUsage.date}:${nextUsed}`, {
-      ...cookieOptions(),
-      maxAge: 60 * 60 * 24,
-    })
-  }
-
-  return response
 }

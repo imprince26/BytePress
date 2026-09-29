@@ -1,26 +1,60 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { SiteFooter } from "@/components/site-footer";
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const headingFont = Plus_Jakarta_Sans({
+  variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sansFont = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const monoFont = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "BytePress - Image and PDF Tools",
+  title: {
+    default: "BytePress - Professional PDF & Image Tools",
+    template: "%s | BytePress",
+  },
   description:
-    "Privacy-focused tools for image compression, image conversion, PDF merge, PDF split, PDF compression, and document conversion.",
+    "Fast, private online tools to compress, merge, split, organize, convert, and protect your PDF documents and images.",
+  keywords: [
+    "PDF compressor",
+    "merge PDF",
+    "split PDF",
+    "compress images",
+    "convert image",
+    "protect PDF",
+    "organize PDF pages",
+    "PDF tools online",
+  ],
+  authors: [{ name: "BytePress" }],
+  metadataBase: new URL("https://bytepress.app"),
+  openGraph: {
+    title: "BytePress - Professional PDF & Image Tools",
+    description:
+      "Compress, merge, split, organize, convert, and protect your PDF documents and images directly in your browser.",
+    type: "website",
+    locale: "en_US",
+    siteName: "BytePress",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -35,12 +69,12 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={cn(
         "h-full scroll-smooth antialiased",
-        geistSans.variable,
-        geistMono.variable,
-        jetbrainsMono.variable
+        sansFont.variable,
+        headingFont.variable,
+        monoFont.variable
       )}
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         {children}
         <SiteFooter />
         <Toaster />

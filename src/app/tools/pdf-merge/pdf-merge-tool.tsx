@@ -1,33 +1,34 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { ArrowDown, ArrowUp, DownloadSimple, FilePdf, Plus, Trash } from "@phosphor-icons/react"
+import {
+  ArrowDown,
+  ArrowUp,
+  FilePdf,
+  Files,
+  Trash,
+  WarningCircle,
+} from "@phosphor-icons/react"
 import { PDFDocument } from "pdf-lib"
+import { toast } from "sonner"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FileDropzone } from "@/components/file-dropzone"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { FileDropzone } from "@/components/file-dropzone"
+import { FileSaveBar } from "@/components/file-save-bar"
+import { ToolProcessingState } from "@/components/tool-skeleton"
 import { formatBytes } from "@/lib/file-format"
 import { validatePdfFiles } from "@/lib/pdf-tools"
-import { recordRecentJob } from "@/lib/recent-jobs"
 
-type Usage = { limit: number; used: number; remaining: number; requiresLogin: boolean }
 type Result = { url: string; name: string; size: number; pages: number }
 
 export function PdfMergeTool() {
   const [files, setFiles] = useState<File[]>([])
-  const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const resultUrlRef = useRef<string | null>(null)
   const filesRef = useRef<File[]>([])
-
-  useEffect(() => {
-    fetch("/api/usage").then((response) => response.json()).then(setUsage).catch(() => setUsage(null))
-  }, [])
 
   useEffect(() => {
     return () => {
@@ -70,125 +71,210 @@ export function PdfMergeTool() {
 
   function mergePdfs() {
     if (files.length < 2) {
-      setError("Choose at least two PDFs to merge.")
+      setError("Please select at least two PDF documents to merge.")
       return
     }
 
     startTransition(async () => {
       try {
         setError(null)
-        const inputBytes = files.reduce((total, file) => total + file.size, 0)
-        const usageResponse = await fetch("/api/usage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tool: "pdf_merge", inputBytes, metadata: { files: files.length } }),
-        })
-        const nextUsage = await usageResponse.json()
-        setUsage(nextUsage)
-        if (!usageResponse.ok) {
-          setError(nextUsage.message ?? "Please sign in to continue.")
-          return
-        }
-
         const merged = await PDFDocument.create()
         let pageTotal = 0
 
         for (const file of files) {
-          const source = await PDFDocument.load(await file.arrayBuffer())
+          const source = await PDFDocument.load(await file.arrayBuffer(), {
+            ignoreEncryption: true,
+          })
           const copiedPages = await merged.copyPages(source, source.getPageIndices())
           copiedPages.forEach((page) => merged.addPage(page))
           pageTotal += copiedPages.length
         }
 
-        const bytes = await merged.save()
+        const bytes = await merged.save({ useObjectStreams: true })
         if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
+
         const pdfBytes = bytes.buffer.slice(
           bytes.byteOffset,
           bytes.byteOffset + bytes.byteLength
         ) as ArrayBuffer
+
         const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }))
         resultUrlRef.current = url
-        setResult({ url, name: "merged.pdf", size: bytes.byteLength, pages: pageTotal })
-        recordRecentJob({
-          tool: "PDF Merge",
-          fileName: `${files.length} PDFs`,
-          inputBytes,
-          outputBytes: bytes.byteLength,
-          summary: `${pageTotal} pages merged`,
+
+        setResult({
+          url,
+          name: "merged-document.pdf",
+          size: bytes.byteLength,
+          pages: pageTotal,
         })
+        toast.success(`Merged ${files.length} PDFs!`)
       } catch (caughtError) {
-        setError(caughtError instanceof Error ? caughtError.message : "Could not merge these PDFs.")
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Could not merge the selected PDF files."
+        )
       }
     })
   }
 
+  const totalInputBytes = files.reduce((sum, f) => sum + f.size, 0)
+
   return (
-    <section className="py-14">
-      <div className="max-w-3xl">
-        <Badge variant="privacy" className="rounded-full"><Plus weight="fill" /> PDF merge</Badge>
-        <h1 className="mt-5 font-heading text-5xl font-black tracking-[-0.05em] text-slate-950">Combine PDFs into one file.</h1>
-        <p className="mt-5 text-lg leading-8 text-slate-600">Select PDFs in the order you want and download one finished document.</p>
+    <section className="space-y-6">
+      {/* Tool Header */}
+      <div className="space-y-1.5">
+        <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Merge PDF Files
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Combine two or more PDF files into a single document in any order.
+        </p>
       </div>
 
-      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader><CardTitle>Merge settings</CardTitle><CardDescription>Add two or more PDFs.</CardDescription></CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="pdfs">PDF files</Label>
-              <div className="mt-2">
-                <FileDropzone id="pdfs" title="Drop PDFs here" description="Add multiple PDFs. Reorder them below before merging." accept="application/pdf,.pdf" multiple onFiles={chooseFiles} />
+      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-bold">Select & Reorder Documents</CardTitle>
+            <CardDescription className="text-xs">
+              Upload multiple PDF documents. Use arrow buttons to arrange the order.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <FileDropzone
+              id="pdf-merge-input"
+              title="Add PDF documents to merge"
+              description="Drop PDF files or browse to add documents."
+              accept="application/pdf"
+              multiple
+              onFiles={chooseFiles}
+            />
+
+            {files.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-foreground">
+                  <span>Selected files ({files.length})</span>
+                  <span className="font-mono text-muted-foreground">{formatBytes(totalInputBytes)}</span>
+                </div>
+                <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                  {files.map((item, index) => (
+                    <div
+                      key={`${item.name}-${index}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 p-2.5 text-xs"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="flex size-5 items-center justify-center rounded bg-muted text-[10px] font-mono font-bold text-muted-foreground shrink-0">
+                          {index + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground truncate">{item.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{formatBytes(item.size)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          disabled={index === 0}
+                          onClick={() => moveFile(index, -1)}
+                          className="size-6"
+                          title="Move up"
+                        >
+                          <ArrowUp className="size-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          disabled={index === files.length - 1}
+                          onClick={() => moveFile(index, 1)}
+                          className="size-6"
+                          title="Move down"
+                        >
+                          <ArrowDown className="size-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => removeFile(index)}
+                          className="size-6 text-muted-foreground hover:text-destructive"
+                          title="Remove"
+                        >
+                          <Trash className="size-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-            {files.length ? <FileList files={files} onMove={moveFile} onRemove={removeFile} /> : null}
-            {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
-            <Button className="h-12 w-full rounded-full" disabled={files.length < 2 || isPending || usage?.requiresLogin} onClick={mergePdfs}>{isPending ? "Merging..." : "Merge PDFs"}</Button>
-            {usage ? <p className="text-center text-xs text-slate-500">Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.</p> : null}
+            )}
+
+            {error && (
+              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={mergePdfs}
+              disabled={files.length < 2 || isPending}
+              className="h-10 w-full rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            >
+              <Files className="size-4" weight="bold" />
+              <span>{isPending ? "Merging Documents..." : `Merge ${files.length} PDFs`}</span>
+            </Button>
           </CardContent>
         </Card>
 
-        <ResultCard result={result} empty="Your merged PDF will appear here." />
+        {/* Right Column */}
+        <Card className="rounded-xl border-border bg-card">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-bold">Merged Document</CardTitle>
+            <CardDescription className="text-xs">
+              Preview and save your combined PDF file.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {isPending ? (
+              <ToolProcessingState
+                title="Merging PDF documents..."
+                description="Combining pages and optimizing streams."
+              />
+            ) : result ? (
+              <>
+                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                    <FilePdf className="size-5" weight="duotone" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{formatBytes(result.size)} • {result.pages} total pages</p>
+                  </div>
+                </div>
+
+                <FileSaveBar
+                  fileUrl={result.url}
+                  defaultFileName={result.name}
+                  fileSize={result.size}
+                  originalSize={totalInputBytes}
+                  mimeType="application/pdf"
+                  isPdf={true}
+                />
+              </>
+            ) : (
+              <div className="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+                <Files className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                Add at least two PDF files and click &quot;Merge PDFs&quot; to review the output.
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </section>
   )
-}
-
-function FileList({
-  files,
-  onMove,
-  onRemove,
-}: {
-  files: File[]
-  onMove: (index: number, direction: -1 | 1) => void
-  onRemove: (index: number) => void
-}) {
-  return (
-    <div className="space-y-3">
-      {files.map((file, index) => (
-        <div key={`${file.name}-${file.size}-${index}`} className="rounded-2xl border border-slate-200 bg-white p-3 text-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="truncate font-semibold text-slate-950">{index + 1}. {file.name}</div>
-              <div className="mt-1 text-xs text-slate-500">{formatBytes(file.size)}</div>
-            </div>
-            <div className="flex shrink-0 gap-1">
-              <Button variant="outline" size="icon" className="size-8 rounded-full bg-white" disabled={index === 0} onClick={() => onMove(index, -1)}>
-                <ArrowUp className="size-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="size-8 rounded-full bg-white" disabled={index === files.length - 1} onClick={() => onMove(index, 1)}>
-                <ArrowDown className="size-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="size-8 rounded-full bg-white text-rose-700" onClick={() => onRemove(index)}>
-                <Trash className="size-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ResultCard({ result, empty }: { result: Result | null; empty: string }) {
-  return <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur"><CardHeader><CardTitle>Result</CardTitle><CardDescription>Download when ready.</CardDescription></CardHeader><CardContent className="space-y-5"><div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 text-center text-slate-500">{result ? <iframe src={result.url} title="Merged PDF preview" className="aspect-video w-full" /> : <div className="flex aspect-video flex-col items-center justify-center"><FilePdf className="size-12" weight="duotone" /><p className="mt-3 text-sm">{empty}</p></div>}</div>{result ? <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4"><p className="text-sm font-medium text-emerald-950">{result.pages} pages ready: {formatBytes(result.size)}</p><Button asChild className="mt-4 h-11 w-full rounded-full"><a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download PDF</a></Button></div> : null}</CardContent></Card>
 }

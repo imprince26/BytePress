@@ -1,11 +1,14 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { ArrowsClockwise, DownloadSimple, ImageSquare } from "@phosphor-icons/react"
+import { ArrowsClockwise, ImageSquare, Sparkle, WarningCircle } from "@phosphor-icons/react"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FileDropzone } from "@/components/file-dropzone"
+import { FileSaveBar } from "@/components/file-save-bar"
+import { ToolProcessingState } from "@/components/tool-skeleton"
 import {
   Card,
   CardContent,
@@ -32,13 +35,6 @@ import {
 } from "@/lib/image-tools"
 import { recordRecentJob } from "@/lib/recent-jobs"
 
-type Usage = {
-  limit: number
-  used: number
-  remaining: number
-  requiresLogin: boolean
-}
-
 type Result = {
   url: string
   name: string
@@ -56,19 +52,11 @@ export function ImageResizeTool() {
   const [lockRatio, setLockRatio] = useState(true)
   const [format, setFormat] = useState<OutputFormat>("image/jpeg")
   const [quality, setQuality] = useState(90)
-  const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const previewUrlRef = useRef<string | null>(null)
   const resultUrlRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    fetch("/api/usage")
-      .then((response) => response.json())
-      .then(setUsage)
-      .catch(() => setUsage(null))
-  }, [])
 
   useEffect(() => {
     return () => {
@@ -87,204 +75,257 @@ export function ImageResizeTool() {
       return
     }
     if (nextFile.size > maxImageUploadBytes) {
-      setError("This file is larger than the current 50 MB limit.")
+      setError("This file is larger than the 50 MB limit.")
       return
     }
 
-    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
-    const nextPreviewUrl = URL.createObjectURL(nextFile)
-    previewUrlRef.current = nextPreviewUrl
-    setPreviewUrl(nextPreviewUrl)
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current)
+    }
+
+    const nextUrl = URL.createObjectURL(nextFile)
+    previewUrlRef.current = nextUrl
+    setPreviewUrl(nextUrl)
     setFile(nextFile)
 
-    const image = new Image()
-    image.onload = () => {
-      setWidth(image.naturalWidth)
-      setHeight(image.naturalHeight)
-      setRatio(image.naturalWidth / image.naturalHeight)
-      URL.revokeObjectURL(image.src)
+    const img = new Image()
+    img.onload = () => {
+      const nextRatio = img.naturalWidth / img.naturalHeight
+      setRatio(nextRatio)
+      setWidth(img.naturalWidth)
+      setHeight(img.naturalHeight)
     }
-    image.src = URL.createObjectURL(nextFile)
+    img.src = nextUrl
   }
 
-  function updateWidth(nextWidth: number) {
+  function onWidthChange(nextWidth: number) {
     setWidth(nextWidth)
-    if (lockRatio && ratio) setHeight(Math.round(nextWidth / ratio))
+    if (lockRatio && ratio) {
+      setHeight(Math.max(1, Math.round(nextWidth / ratio)))
+    }
   }
 
-  function updateHeight(nextHeight: number) {
+  function onHeightChange(nextHeight: number) {
     setHeight(nextHeight)
-    if (lockRatio && ratio) setWidth(Math.round(nextHeight * ratio))
+    if (lockRatio && ratio) {
+      setWidth(Math.max(1, Math.round(nextHeight * ratio)))
+    }
   }
 
   function resizeImage() {
     if (!file) {
-      setError("Choose an image first.")
+      setError("Please select an image first.")
       return
     }
 
     startTransition(async () => {
       try {
         setError(null)
-        const usageResponse = await fetch("/api/usage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tool: "image_resize",
-            inputBytes: file.size,
-            metadata: { width, height, format, quality },
-          }),
-        })
-        const nextUsage = await usageResponse.json()
-        setUsage(nextUsage)
-        if (!usageResponse.ok) {
-          setError(nextUsage.message ?? "Please sign in to continue.")
-          return
-        }
-
         const { canvas } = await renderImageToCanvas(file, width, height)
         const blob = await canvasToBlob(canvas, format, quality / 100)
-        if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
+
+        if (resultUrlRef.current) {
+          URL.revokeObjectURL(resultUrlRef.current)
+        }
+
         const url = URL.createObjectURL(blob)
         resultUrlRef.current = url
-        setResult({
+        const nextResult = {
           url,
           name: outputName(file.name, "resized", format),
           size: blob.size,
-          width: canvas.width,
-          height: canvas.height,
-        })
+          width,
+          height,
+        }
+        setResult(nextResult)
+        toast.success(`Resized image to ${width}x${height}px!`)
+
         recordRecentJob({
           tool: "Image Resize",
           fileName: file.name,
           inputBytes: file.size,
           outputBytes: blob.size,
-          summary: `${canvas.width} x ${canvas.height}px`,
+          summary: `${width} x ${height}px`,
         })
       } catch (caughtError) {
-        setError(caughtError instanceof Error ? caughtError.message : "Resize failed.")
+        setError(
+          caughtError instanceof Error
+            ? caughtError.message
+            : "Image resize operation failed."
+        )
       }
     })
   }
 
   return (
-    <section className="py-14">
+    <section className="py-6 sm:py-8">
       <div className="max-w-3xl">
-        <Badge variant="privacy" className="rounded-full">
-          <ArrowsClockwise weight="fill" /> Resize images
+        <Badge variant="outline" className="rounded-md border-primary/30 text-primary bg-primary/5 text-xs font-mono">
+          <ArrowsClockwise className="size-3.5 mr-1" weight="bold" /> Resize Image
         </Badge>
-        <h1 className="mt-5 font-heading text-5xl font-black tracking-[-0.05em] text-slate-950">
-          Create the exact image size you need.
+        <h1 className="mt-3 font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+          Scale and resize image dimensions
         </h1>
-        <p className="mt-5 text-lg leading-8 text-slate-600">
-          Resize photos, graphics, and uploads for any destination.
+        <p className="mt-2 text-sm sm:text-base leading-relaxed text-muted-foreground">
+          Set custom pixel dimensions with aspect ratio lock and output format controls.
         </p>
       </div>
 
-      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader>
-            <CardTitle>Resize settings</CardTitle>
-            <CardDescription>Set dimensions, choose a format, and download the result.</CardDescription>
+      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Dimension Settings</CardTitle>
+            <CardDescription className="text-xs">
+              Specify exact width, height, and target image format.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5">
             <div>
-              <Label htmlFor="resize-image">Image file</Label>
-              <div className="mt-2">
-                <FileDropzone id="resize-image" title="Drop an image here" description="Choose the image you want to resize." accept="image/*" onFiles={(files) => chooseFile(files?.[0] ?? null)} />
+              <Label htmlFor="image-resize-file" className="text-xs font-semibold text-foreground">Image File</Label>
+              <div className="mt-1.5">
+                <FileDropzone
+                  id="image-resize-file"
+                  title={file ? file.name : "Drop an image here"}
+                  description={file ? `${formatBytes(file.size)} (${width}x${height}px)` : "PNG, JPG, WEBP, AVIF up to 50 MB"}
+                  accept="image/*"
+                  onFiles={(files) => chooseFile(files?.[0] ?? null)}
+                />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="width">Width</Label>
-                <Input id="width" type="number" min="1" className="mt-2 bg-white" value={width} onChange={(event) => updateWidth(Number(event.target.value))} />
+                <Label htmlFor="width" className="text-xs font-semibold text-foreground">Width (px)</Label>
+                <Input
+                  id="width"
+                  type="number"
+                  min="1"
+                  max="10000"
+                  value={width}
+                  onChange={(e) => onWidthChange(Math.max(1, Number(e.target.value)))}
+                  className="mt-1.5 h-10 text-xs bg-background"
+                />
               </div>
+
               <div>
-                <Label htmlFor="height">Height</Label>
-                <Input id="height" type="number" min="1" className="mt-2 bg-white" value={height} onChange={(event) => updateHeight(Number(event.target.value))} />
+                <Label htmlFor="height" className="text-xs font-semibold text-foreground">Height (px)</Label>
+                <Input
+                  id="height"
+                  type="number"
+                  min="1"
+                  max="10000"
+                  value={height}
+                  onChange={(e) => onHeightChange(Math.max(1, Number(e.target.value)))}
+                  className="mt-1.5 h-10 text-xs bg-background"
+                />
               </div>
             </div>
 
-            <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
-              <input type="checkbox" checked={lockRatio} onChange={(event) => setLockRatio(event.target.checked)} />
-              Keep aspect ratio
+            <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
+              <input
+                type="checkbox"
+                checked={lockRatio}
+                onChange={(e) => setLockRatio(e.target.checked)}
+                className="rounded border-border accent-primary"
+              />
+              <span>Maintain original aspect ratio</span>
             </label>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 pt-1 border-t border-border">
               <div>
-                <Label htmlFor="resize-format">Output format</Label>
-                <Select value={format} onValueChange={(value) => setFormat(value as OutputFormat)}>
-                  <SelectTrigger id="resize-format" className="mt-2 bg-white">
+                <Label htmlFor="format" className="text-xs font-semibold text-foreground">Format</Label>
+                <Select value={format} onValueChange={(val) => setFormat(val as OutputFormat)}>
+                  <SelectTrigger id="format" className="mt-1.5 h-10 text-xs bg-background">
                     <SelectValue placeholder="Output format" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="image/webp">WEBP</SelectItem>
                     <SelectItem value="image/jpeg">JPG</SelectItem>
+                    <SelectItem value="image/webp">WEBP</SelectItem>
                     <SelectItem value="image/png">PNG</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
               <div>
-                <Label htmlFor="resize-quality">Quality: {quality}%</Label>
-                <Input id="resize-quality" type="range" min="10" max="100" className="mt-2 px-0" value={quality} onChange={(event) => setQuality(Number(event.target.value))} />
+                <Label htmlFor="quality" className="text-xs font-semibold text-foreground">Quality ({quality}%)</Label>
+                <input
+                  id="quality"
+                  type="range"
+                  min="40"
+                  max="100"
+                  value={quality}
+                  onChange={(e) => setQuality(Number(e.target.value))}
+                  className="mt-3 w-full accent-primary cursor-pointer"
+                />
               </div>
             </div>
 
-            {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <span>{error}</span>
+              </div>
+            )}
 
-            <Button className="h-12 w-full rounded-full" disabled={!file || isPending || usage?.requiresLogin} onClick={resizeImage}>
-              {isPending ? "Resizing..." : "Resize image"}
+            <Button
+              type="button"
+              onClick={resizeImage}
+              disabled={!file || isPending}
+              className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            >
+              <Sparkle className="size-4" weight="fill" />
+              <span>{isPending ? "Resizing Image..." : "Resize Image"}</span>
             </Button>
-            {usage ? <p className="text-center text-xs text-slate-500">Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.</p> : null}
           </CardContent>
         </Card>
 
-        <PreviewCard file={file} previewUrl={previewUrl} result={result} />
+        {/* Right Column */}
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Preview & Output</CardTitle>
+            <CardDescription className="text-xs">
+              Inspect resized dimensions and save to your preferred directory.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {isPending ? (
+              <ToolProcessingState
+                title="Resizing Image..."
+                description="Rendering canvas pixels to target dimensions and encoding output."
+              />
+            ) : (
+              <>
+                <div className="overflow-hidden rounded-xl border border-border bg-muted/20 p-2">
+                  {previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={result ? result.url : previewUrl}
+                      alt="Image preview"
+                      className="aspect-video w-full object-contain rounded-lg"
+                    />
+                  ) : (
+                    <div className="flex aspect-video flex-col items-center justify-center text-muted-foreground">
+                      <ImageSquare className="size-10 text-muted-foreground/40 mb-2" weight="duotone" />
+                      <p className="text-xs">No image selected</p>
+                    </div>
+                  )}
+                </div>
+
+                {result ? (
+                  <FileSaveBar
+                    fileUrl={result.url}
+                    defaultFileName={result.name}
+                    fileSize={result.size}
+                    originalSize={file ? file.size : undefined}
+                    mimeType={format}
+                    isPdf={false}
+                  />
+                ) : null}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </section>
   )
-}
-
-function PreviewCard({ file, previewUrl, result }: { file: File | null; previewUrl: string | null; result: Result | null }) {
-  return (
-    <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-      <CardHeader>
-        <CardTitle>Preview and result</CardTitle>
-        <CardDescription>Download the resized image when it is ready.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-          {result?.url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={result.url} alt="Resized preview" className="aspect-video w-full object-contain" />
-          ) : previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-contain" />
-          ) : (
-            <div className="flex aspect-video flex-col items-center justify-center text-slate-500">
-              <ImageSquare className="size-12" weight="duotone" />
-              <p className="mt-3 text-sm">No image selected</p>
-            </div>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Metric label="Original" value={file ? formatBytes(file.size) : "-"} />
-          <Metric label="Output" value={result ? formatBytes(result.size) : "-"} />
-        </div>
-        {result ? (
-          <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm font-medium text-emerald-950">Ready: {result.width} x {result.height}px</p>
-            <Button asChild className="mt-4 h-11 w-full rounded-full">
-              <a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download resized image</a>
-            </Button>
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
-  )
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-2xl border border-slate-200 bg-white p-4"><div className="text-xs uppercase tracking-wide text-slate-500">{label}</div><div className="mt-1 font-heading text-lg font-black text-slate-950">{value}</div></div>
 }

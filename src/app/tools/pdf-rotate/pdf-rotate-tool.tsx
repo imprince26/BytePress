@@ -1,34 +1,30 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { ArrowClockwise, DownloadSimple, FilePdf } from "@phosphor-icons/react"
+import { ArrowClockwise, FilePdf, Sparkle, WarningCircle } from "@phosphor-icons/react"
 import { degrees, PDFDocument } from "pdf-lib"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FileDropzone } from "@/components/file-dropzone"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileDropzone } from "@/components/file-dropzone"
+import { FileSaveBar } from "@/components/file-save-bar"
+import { ToolProcessingState } from "@/components/tool-skeleton"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { formatBytes } from "@/lib/file-format"
 import { validatePdfFiles } from "@/lib/pdf-tools"
-import { recordRecentJob } from "@/lib/recent-jobs"
 
-type Usage = { limit: number; used: number; remaining: number; requiresLogin: boolean }
 type Result = { url: string; name: string; size: number; pages: number }
 
 export function PdfRotateTool() {
   const [file, setFile] = useState<File | null>(null)
   const [rotation, setRotation] = useState("90")
-  const [usage, setUsage] = useState<Usage | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const resultUrlRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    fetch("/api/usage").then((response) => response.json()).then(setUsage).catch(() => setUsage(null))
-  }, [])
 
   useEffect(() => {
     return () => {
@@ -45,44 +41,39 @@ export function PdfRotateTool() {
 
   function rotatePdf() {
     if (!file) {
-      setError("Choose a PDF first.")
+      setError("Please choose a PDF document first.")
       return
     }
 
     startTransition(async () => {
       try {
         setError(null)
-        const usageResponse = await fetch("/api/usage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tool: "pdf_split", inputBytes: file.size, metadata: { action: "rotate", rotation } }),
-        })
-        const nextUsage = await usageResponse.json()
-        setUsage(nextUsage)
-        if (!usageResponse.ok) {
-          setError(nextUsage.message ?? "Please sign in to continue.")
-          return
-        }
-
-        const pdf = await PDFDocument.load(await file.arrayBuffer())
+        const pdf = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true })
         const angle = Number(rotation)
+
         pdf.getPages().forEach((page) => {
           const current = page.getRotation().angle
           page.setRotation(degrees((current + angle) % 360))
         })
-        const bytes = await pdf.save()
-        const pdfBytes = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer
+
+        const bytes = await pdf.save({ useObjectStreams: true })
+        const pdfBytes = bytes.buffer.slice(
+          bytes.byteOffset,
+          bytes.byteOffset + bytes.byteLength
+        ) as ArrayBuffer
+
         if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current)
         const url = URL.createObjectURL(new Blob([pdfBytes], { type: "application/pdf" }))
         resultUrlRef.current = url
-        setResult({ url, name: file.name.replace(/\.pdf$/i, "-rotated.pdf"), size: bytes.byteLength, pages: pdf.getPageCount() })
-        recordRecentJob({
-          tool: "PDF Rotate",
-          fileName: file.name,
-          inputBytes: file.size,
-          outputBytes: bytes.byteLength,
-          summary: `Rotated ${pdf.getPageCount()} pages`,
+
+        const baseName = file.name.replace(/\.pdf$/i, "")
+        setResult({
+          url,
+          name: `${baseName}-rotated.pdf`,
+          size: bytes.byteLength,
+          pages: pdf.getPageCount(),
         })
+        toast.success(`Rotated ${pdf.getPageCount()} pages by ${rotation}°!`)
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : "Could not rotate this PDF.")
       }
@@ -90,25 +81,122 @@ export function PdfRotateTool() {
   }
 
   return (
-    <section className="py-14">
+    <section className="py-6 sm:py-8">
       <div className="max-w-3xl">
-        <Badge variant="privacy" className="rounded-full"><ArrowClockwise weight="fill" /> PDF rotate</Badge>
-        <h1 className="mt-5 font-heading text-5xl font-black tracking-[-0.05em] text-slate-950">Fix sideways PDF pages.</h1>
-        <p className="mt-5 text-lg leading-8 text-slate-600">Rotate every page and download a corrected PDF.</p>
+        <Badge variant="outline" className="rounded-md border-primary/30 text-primary bg-primary/5 text-xs font-mono">
+          <ArrowClockwise className="size-3.5 mr-1" weight="bold" /> Rotate PDF
+        </Badge>
+        <h1 className="mt-3 font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+          Rotate PDF pages permanently
+        </h1>
+        <p className="mt-2 text-sm sm:text-base leading-relaxed text-muted-foreground">
+          Correct upside-down or sideways pages across your entire document and save the updated file.
+        </p>
       </div>
-      <div id="tool-workspace" className="mt-10 scroll-mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur">
-          <CardHeader><CardTitle>Rotate settings</CardTitle><CardDescription>Choose a PDF and rotation direction.</CardDescription></CardHeader>
-          <CardContent className="space-y-6">
-            <div><Label htmlFor="pdf">PDF file</Label><div className="mt-2"><FileDropzone id="pdf" title="Drop a PDF here" description="Choose the PDF you want to rotate." accept="application/pdf,.pdf" onFiles={(files) => chooseFile(files?.[0] ?? null)} /></div></div>
-            <div><Label>Rotation</Label><Select value={rotation} onValueChange={setRotation}><SelectTrigger className="mt-2 bg-white"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="90">90 degrees clockwise</SelectItem><SelectItem value="180">180 degrees</SelectItem><SelectItem value="270">90 degrees counter-clockwise</SelectItem></SelectContent></Select></div>
-            {file ? <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600"><span className="font-semibold text-slate-950">{file.name}</span><br />{formatBytes(file.size)}</div> : null}
-            {error ? <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div> : null}
-            <Button className="h-12 w-full rounded-full" disabled={!file || isPending || usage?.requiresLogin} onClick={rotatePdf}>{isPending ? "Rotating..." : "Rotate PDF"}</Button>
-            {usage ? <p className="text-center text-xs text-slate-500">Anonymous usage: {usage.used}/{usage.limit} today. {usage.remaining} remaining.</p> : null}
+
+      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Rotation Settings</CardTitle>
+            <CardDescription className="text-xs">
+              Select orientation angle to apply to document pages.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <FileDropzone
+              id="pdf-rotate-input"
+              title={file ? file.name : "Drop a PDF document here"}
+              description={file ? `File size: ${formatBytes(file.size)}` : "PDF documents up to 50 MB"}
+              accept="application/pdf"
+              onFiles={(files) => chooseFile(files?.[0] ?? null)}
+            />
+
+            <div>
+              <Label htmlFor="rotation-angle" className="text-xs font-semibold text-foreground">
+                Rotation Angle
+              </Label>
+              <Select value={rotation} onValueChange={setRotation}>
+                <SelectTrigger id="rotation-angle" className="mt-1.5 h-10 text-xs bg-background">
+                  <SelectValue placeholder="Rotation angle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="90">Rotate 90° Clockwise</SelectItem>
+                  <SelectItem value="180">Rotate 180° (Upside down)</SelectItem>
+                  <SelectItem value="270">Rotate 270° (Counter-clockwise)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={rotatePdf}
+              disabled={!file || isPending}
+              className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            >
+              <Sparkle className="size-4" weight="fill" />
+              <span>{isPending ? "Rotating Document..." : "Rotate PDF"}</span>
+            </Button>
           </CardContent>
         </Card>
-        <Card className="rounded-[2rem] border-white/70 bg-white/80 shadow-xl shadow-slate-900/5 backdrop-blur"><CardHeader><CardTitle>Result</CardTitle><CardDescription>Download when ready.</CardDescription></CardHeader><CardContent className="space-y-5"><div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 text-center text-slate-500">{result ? <iframe src={result.url} title="Rotated PDF preview" className="aspect-video w-full" /> : <div className="flex aspect-video flex-col items-center justify-center"><FilePdf className="size-12" weight="duotone" /><p className="mt-3 text-sm">Your rotated PDF will appear here.</p></div>}</div>{result ? <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4"><p className="text-sm font-medium text-emerald-950">{result.pages} pages ready: {formatBytes(result.size)}</p><Button asChild className="mt-4 h-11 w-full rounded-full"><a href={result.url} download={result.name}><DownloadSimple className="size-4" /> Download PDF</a></Button></div> : null}</CardContent></Card>
+
+        {/* Right Column */}
+        <Card className="rounded-2xl border-border bg-card shadow-xs">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Rotated Output</CardTitle>
+            <CardDescription className="text-xs">
+              Inspect your rotated pages or save the updated file.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {isPending ? (
+              <ToolProcessingState
+                title="Rotating PDF Pages..."
+                description="Applying page orientation adjustments and rebuilding PDF streams."
+              />
+            ) : (
+              <>
+                <div className="rounded-xl border border-border bg-muted/30 p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                      <FilePdf className="size-6" weight="duotone" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate">
+                        {file ? file.name : "No document selected"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {result ? `${result.pages} pages rotated` : "Waiting for rotation"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {result ? (
+                  <FileSaveBar
+                    fileUrl={result.url}
+                    defaultFileName={result.name}
+                    fileSize={result.size}
+                    originalSize={file ? file.size : undefined}
+                    mimeType="application/pdf"
+                    isPdf={true}
+                  />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+                    <ArrowClockwise className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                    Select an angle and click &quot;Rotate PDF&quot; to review and download the updated document.
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </section>
   )
