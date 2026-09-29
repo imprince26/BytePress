@@ -1,17 +1,17 @@
 import Link from "next/link"
-import { ShieldCheck, Cpu } from "@phosphor-icons/react/dist/ssr"
+import { ShieldCheckIcon, CpuIcon } from "@phosphor-icons/react/dist/ssr"
 
 export function SiteFooter() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="mt-auto border-t border-border bg-background/80 backdrop-blur px-6 py-10 text-xs text-muted-foreground">
+    <footer className="mt-auto border-t border-border bg-background/80 backdrop-blur px-4 py-10 sm:px-6 lg:px-8 text-xs text-muted-foreground">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4 lg:grid-cols-5 pb-8 border-b border-border/60">
           <div className="md:col-span-2 space-y-3">
             <Link href="/" className="flex items-center gap-2.5 font-heading text-lg font-bold text-foreground">
               <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Cpu className="size-4" weight="duotone" />
+                <CpuIcon className="size-4" weight="duotone" />
               </span>
               BytePress Studio
             </Link>
@@ -19,7 +19,7 @@ export function SiteFooter() {
               Zero-server-upload file engineering suite. All operations run directly inside your web browser for speed, unlimited usage, and total data privacy.
             </p>
             <div className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2.5 py-1 text-[11px] text-foreground">
-              <ShieldCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" weight="fill" />
+              <ShieldCheckIcon className="size-3.5 text-emerald-600 dark:text-emerald-400" weight="fill" />
               Private and direct document processing
             </div>
           </div>

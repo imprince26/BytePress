@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
+import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
 const headingFont = Plus_Jakarta_Sans({
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     "PDF tools online",
   ],
   authors: [{ name: "BytePress" }],
-  metadataBase: new URL("https://bytepress.app"),
+  metadataBase: new URL("https://bytepress.vercel.app"),
   openGraph: {
     title: "BytePress - Professional PDF & Image Tools",
     description:
@@ -75,7 +76,8 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
-        {children}
+        <SiteHeader />
+        <main className="flex-1">{children}</main>
         <SiteFooter />
         <Toaster />
       </body>

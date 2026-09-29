@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CaretDown, Check } from "@phosphor-icons/react"
+import { CaretDownIcon, CheckIcon } from "@phosphor-icons/react"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
@@ -34,7 +34,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <CaretDown className="size-4 opacity-60" />
+        <CaretDownIcon className="size-4 opacity-60" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
@@ -89,7 +89,7 @@ function SelectItem({
     >
       <span className="absolute right-2 flex size-4 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
-          <Check className="size-4" />
+          <CheckIcon className="size-4" />
         </SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

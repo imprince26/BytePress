@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import Link from "next/link"
-import { ArrowClockwise, WarningCircle } from "@phosphor-icons/react"
+import { ArrowClockwiseIcon, WarningCircleIcon } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
 
@@ -20,7 +20,7 @@ export default function ErrorBoundary({
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
       <div className="flex size-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive mb-4">
-        <WarningCircle className="size-7" weight="duotone" />
+        <WarningCircleIcon className="size-7" weight="duotone" />
       </div>
       <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground">
         Something went wrong
@@ -30,7 +30,7 @@ export default function ErrorBoundary({
       </p>
       <div className="mt-6 flex items-center gap-3">
         <Button onClick={() => reset()} size="sm" className="gap-1.5 text-xs font-semibold">
-          <ArrowClockwise className="size-3.5" /> Try again
+          <ArrowClockwiseIcon className="size-3.5" /> Try again
         </Button>
         <Button asChild variant="outline" size="sm" className="text-xs font-semibold">
           <Link href="/tools">Go to Tools</Link>

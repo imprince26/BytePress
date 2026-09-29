@@ -1,24 +1,23 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import {
-  ArrowRight,
-  Eye,
-  FileArrowDown,
-  Files,
-  HashStraight,
-  ImageSquare,
-  ImagesSquare,
-  LockKey,
-  Scissors,
-  SquaresFour,
-  ArrowsClockwise,
-  ArrowsLeftRight,
-  ArrowsOutLineHorizontal,
+  ArrowRightIcon,
+  EyeIcon,
+  FileArrowDownIcon,
+  FilesIcon,
+  HashStraightIcon,
+  ImageSquareIcon,
+  ImagesSquareIcon,
+  LockKeyIcon,
+  ScissorsIcon,
+  SquaresFourIcon,
+  ArrowsClockwiseIcon,
+  ArrowsLeftRightIcon,
+  ArrowsOutLineHorizontalIcon,
 } from "@phosphor-icons/react/dist/ssr"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { SiteHeader } from "@/components/site-header"
 import { TOOLS_LIST } from "@/config/tools"
 
 export const metadata: Metadata = {
@@ -28,18 +27,18 @@ export const metadata: Metadata = {
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
-  FileArrowDown,
-  Files,
-  Scissors,
-  SquaresFour,
-  ArrowClockwise: ArrowsClockwise,
-  HashStraight,
-  LockKey,
-  Eye,
-  ImageSquare,
-  ArrowsOutLineHorizontal,
-  ArrowsLeftRight,
-  ImagesSquare,
+  FileArrowDown: FileArrowDownIcon,
+  Files: FilesIcon,
+  Scissors: ScissorsIcon,
+  SquaresFour: SquaresFourIcon,
+  ArrowClockwise: ArrowsClockwiseIcon,
+  HashStraight: HashStraightIcon,
+  LockKey: LockKeyIcon,
+  Eye: EyeIcon,
+  ImageSquare: ImageSquareIcon,
+  ArrowsOutLineHorizontal: ArrowsOutLineHorizontalIcon,
+  ArrowsLeftRight: ArrowsLeftRightIcon,
+  ImagesSquare: ImagesSquareIcon,
 }
 
 const POPULAR_ACTIONS = [
@@ -79,8 +78,7 @@ export default function Home() {
   const imageTools = TOOLS_LIST.filter((t) => t.category === "image")
 
   return (
-    <main className="min-h-screen bg-background">
-      <SiteHeader />
+    <div className="bg-background">
 
       {/* Hero Section */}
       <section className="border-b border-border/70 bg-muted/20 px-4 py-16 sm:px-6 sm:py-24 lg:px-8 text-center">
@@ -111,7 +109,7 @@ export default function Home() {
             <Button asChild size="lg" className="rounded-xl px-6 font-semibold bg-primary text-primary-foreground">
               <Link href="/tools">
                 <span>View All Tools</span>
-                <ArrowRight className="size-4 ml-1.5" />
+                <ArrowRightIcon className="size-4 ml-1.5" />
               </Link>
             </Button>
           </div>
@@ -136,7 +134,7 @@ export default function Home() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {pdfTools.map((tool) => {
-            const Icon = ICON_MAP[tool.iconName] || FileArrowDown
+            const Icon = ICON_MAP[tool.iconName] || FileArrowDownIcon
             return (
               <Link key={tool.id} href={tool.href} className="group">
                 <Card className="h-full rounded-xl border-border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-xs flex flex-col justify-between">
@@ -179,7 +177,7 @@ export default function Home() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {imageTools.map((tool) => {
-            const Icon = ICON_MAP[tool.iconName] || ImageSquare
+            const Icon = ICON_MAP[tool.iconName] || ImageSquareIcon
             return (
               <Link key={tool.id} href={tool.href} className="group">
                 <Card className="h-full rounded-xl border-border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-xs flex flex-col justify-between">
@@ -227,6 +225,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

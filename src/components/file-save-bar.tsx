@@ -2,11 +2,11 @@
 
 import { useState } from "react"
 import {
-  CheckCircle,
-  DownloadSimple,
-  Eye,
-  FolderOpen,
-  ArrowClockwise,
+  CheckCircleIcon,
+  DownloadSimpleIcon,
+  EyeIcon,
+  FolderOpenIcon,
+  ArrowClockwiseIcon,
 } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
@@ -95,7 +95,7 @@ export function FileSaveBar({
         {/* Status & Stats header */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
-            <CheckCircle className="size-4 text-emerald-600 dark:text-emerald-400" weight="fill" />
+            <CheckCircleIcon className="size-4 text-emerald-600 dark:text-emerald-400" weight="fill" />
             <span className="text-xs font-semibold text-foreground">
               Ready to download
             </span>
@@ -130,7 +130,7 @@ export function FileSaveBar({
                 onClick={resetName}
                 className="flex items-center gap-1 text-[11px] text-primary hover:underline"
               >
-                <ArrowClockwise className="size-3" /> Reset
+                <ArrowClockwiseIcon className="size-3" /> Reset
               </button>
             )}
           </div>
@@ -154,7 +154,7 @@ export function FileSaveBar({
               onClick={() => setIsPreviewOpen(true)}
               className="h-9 flex-1 text-xs font-semibold gap-1.5"
             >
-              <Eye className="size-3.5 text-primary" weight="duotone" />
+              <EyeIcon className="size-3.5 text-primary" weight="duotone" />
               <span>Preview</span>
             </Button>
           )}
@@ -169,7 +169,7 @@ export function FileSaveBar({
               disabled={isSaving}
               className="h-9 flex-1 text-xs font-semibold gap-1.5"
             >
-              <FolderOpen className="size-3.5 text-primary" weight="duotone" />
+              <FolderOpenIcon className="size-3.5 text-primary" weight="duotone" />
               <span>Save As...</span>
             </Button>
           )}
@@ -181,7 +181,7 @@ export function FileSaveBar({
             onClick={handleQuickDownload}
             className="h-9 flex-1 text-xs font-semibold gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            <DownloadSimple className="size-3.5" weight="bold" />
+            <DownloadSimpleIcon className="size-3.5" weight="bold" />
             <span>Download</span>
           </Button>
         </div>

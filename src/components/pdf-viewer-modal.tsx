@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import {
-  ArrowsOut,
-  ArrowsIn,
-  DownloadSimple,
-  FolderOpen,
-  FilePdf,
-  X,
-  CheckCircle,
+  ArrowsOutIcon,
+  ArrowsInIcon,
+  DownloadSimpleIcon,
+  FolderOpenIcon,
+  FilePdfIcon,
+  XIcon,
+  CheckCircleIcon,
 } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
@@ -76,7 +76,7 @@ export function PdfViewerModal({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-              <FilePdf className="size-5" weight="duotone" />
+              <FilePdfIcon className="size-5" weight="duotone" />
             </span>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -98,7 +98,7 @@ export function PdfViewerModal({
                 disabled={isSaving}
                 className="h-8 gap-1.5 text-xs font-medium"
               >
-                <FolderOpen className="size-4 text-primary" weight="duotone" />
+                <FolderOpenIcon className="size-4 text-primary" weight="duotone" />
                 <span className="hidden sm:inline">Save As...</span>
               </Button>
             )}
@@ -108,7 +108,7 @@ export function PdfViewerModal({
               onClick={handleQuickDownload}
               className="h-8 gap-1.5 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              <DownloadSimple className="size-4" weight="bold" />
+              <DownloadSimpleIcon className="size-4" weight="bold" />
               <span>Download</span>
             </Button>
 
@@ -120,9 +120,9 @@ export function PdfViewerModal({
               title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
             >
               {isFullscreen ? (
-                <ArrowsIn className="size-4" />
+                <ArrowsInIcon className="size-4" />
               ) : (
-                <ArrowsOut className="size-4" />
+                <ArrowsOutIcon className="size-4" />
               )}
             </Button>
 
@@ -133,7 +133,7 @@ export function PdfViewerModal({
               className="size-8 text-muted-foreground hover:text-foreground"
               title="Close Preview"
             >
-              <X className="size-4" />
+              <XIcon className="size-4" />
             </Button>
           </div>
         </div>
@@ -146,7 +146,7 @@ export function PdfViewerModal({
             className="w-full h-full border-none"
           >
             <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground">
-              <FilePdf className="size-16 text-primary mb-3" weight="duotone" />
+              <FilePdfIcon className="size-16 text-primary mb-3" weight="duotone" />
               <p className="text-base font-semibold text-foreground">
                 Preview not directly embeddable in this browser window.
               </p>

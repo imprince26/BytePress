@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react"
 import {
-  ArrowClockwise,
-  ArrowLeft,
-  ArrowRight,
-  FilePdf,
-  SquaresFour,
-  Trash,
-  WarningCircle,
+  ArrowClockwiseIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  FilePdfIcon,
+  SquaresFourIcon,
+  TrashIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react"
 import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
@@ -165,7 +165,7 @@ export function PdfOrganizeTool() {
                 size="sm"
                 className="h-8 px-4 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5"
               >
-                <SquaresFour className="size-3.5" weight="bold" />
+                <SquaresFourIcon className="size-3.5" weight="bold" />
                 <span>{isPending ? "Saving..." : "Apply & Save PDF"}</span>
               </Button>
             </div>
@@ -193,7 +193,7 @@ export function PdfOrganizeTool() {
                     className="relative flex aspect-3/4 w-full items-center justify-center rounded-md border border-dashed border-border bg-muted/20 transition-transform duration-200"
                     style={{ transform: `rotate(${p.rotation}deg)` }}
                   >
-                    <FilePdf className="size-9 text-primary/70" weight="duotone" />
+                    <FilePdfIcon className="size-9 text-primary/70" weight="duotone" />
                     {p.rotation !== 0 && (
                       <span className="absolute bottom-1 right-1 rounded-sm bg-primary/10 px-1 text-[9px] font-mono font-bold text-primary">
                         {p.rotation}°
@@ -209,7 +209,7 @@ export function PdfOrganizeTool() {
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
                       title="Move left"
                     >
-                      <ArrowLeft className="size-3.5" />
+                      <ArrowLeftIcon className="size-3.5" />
                     </button>
                     <button
                       type="button"
@@ -217,7 +217,7 @@ export function PdfOrganizeTool() {
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
                       title="Rotate 90°"
                     >
-                      <ArrowClockwise className="size-3.5" />
+                      <ArrowClockwiseIcon className="size-3.5" />
                     </button>
                     <button
                       type="button"
@@ -225,7 +225,7 @@ export function PdfOrganizeTool() {
                       className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
                       title="Delete page"
                     >
-                      <Trash className="size-3.5" />
+                      <TrashIcon className="size-3.5" />
                     </button>
                     <button
                       type="button"
@@ -234,7 +234,7 @@ export function PdfOrganizeTool() {
                       className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
                       title="Move right"
                     >
-                      <ArrowRight className="size-3.5" />
+                      <ArrowRightIcon className="size-3.5" />
                     </button>
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export function PdfOrganizeTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}

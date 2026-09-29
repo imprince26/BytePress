@@ -2,10 +2,9 @@
 
 import { useState, useTransition } from "react"
 import {
-  FileArrowDown,
-  Sparkle,
-  WarningCircle,
-  FilePdf,
+  FileArrowDownIcon,
+  WarningCircleIcon,
+  FilePdfIcon,
 } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
@@ -156,7 +155,7 @@ export function PdfCompressTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}
@@ -167,7 +166,7 @@ export function PdfCompressTool() {
               disabled={!file || isPending}
               className="h-10 w-full rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             >
-              <FileArrowDown className="size-4" weight="bold" />
+              <FileArrowDownIcon className="size-4" weight="bold" />
               <span>{isPending ? "Compressing PDF..." : "Compress PDF"}</span>
             </Button>
           </CardContent>
@@ -191,7 +190,7 @@ export function PdfCompressTool() {
               <>
                 <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                    <FilePdf className="size-5" weight="duotone" />
+                    <FilePdfIcon className="size-5" weight="duotone" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
@@ -210,7 +209,7 @@ export function PdfCompressTool() {
               </>
             ) : (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-                <FileArrowDown className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                <FileArrowDownIcon className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
                 Upload a PDF and click &quot;Compress PDF&quot; to view and download your compressed file.
               </div>
             )}

@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react"
 import {
-  Eye,
-  EyeSlash,
-  FilePdf,
-  LockKey,
-  WarningCircle,
+  EyeIcon,
+  EyeSlashIcon,
+  FilePdfIcon,
+  LockKeyIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
@@ -131,7 +131,7 @@ export function PdfProtectTool() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    {showPassword ? <EyeSlash className="size-4" /> : <Eye className="size-4" />}
+                    {showPassword ? <EyeSlashIcon className="size-4" /> : <EyeIcon className="size-4" />}
                   </button>
                 </div>
               </div>
@@ -155,7 +155,7 @@ export function PdfProtectTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}
@@ -166,7 +166,7 @@ export function PdfProtectTool() {
               disabled={!file || isPending}
               className="h-10 w-full rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             >
-              <LockKey className="size-4" weight="bold" />
+              <LockKeyIcon className="size-4" weight="bold" />
               <span>{isPending ? "Encrypting PDF..." : "Protect PDF"}</span>
             </Button>
           </CardContent>
@@ -190,7 +190,7 @@ export function PdfProtectTool() {
               <>
                 <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                    <FilePdf className="size-5" weight="duotone" />
+                    <FilePdfIcon className="size-5" weight="duotone" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
@@ -209,7 +209,7 @@ export function PdfProtectTool() {
               </>
             ) : (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-                <LockKey className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                <LockKeyIcon className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
                 Upload a PDF, set your password, and click &quot;Protect PDF&quot; to download the secured file.
               </div>
             )}

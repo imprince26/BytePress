@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 
-import { SiteHeader } from "@/components/site-header"
 import { ImageCompressor } from "./image-compressor"
 
 export const metadata: Metadata = {
@@ -10,12 +9,8 @@ export const metadata: Metadata = {
 
 export default function ImageCompressPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <SiteHeader nav={[{ href: "/tools", label: "All Tools" }, { href: "/tools/image-compress", label: "Compress Image" }]} />
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <ImageCompressor />
-      </div>
-    </main>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <ImageCompressor />
+    </div>
   )
 }
-

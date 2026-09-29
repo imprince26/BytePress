@@ -3,19 +3,19 @@
 import { useState } from "react"
 import Link from "next/link"
 import {
-  ArrowClockwise,
-  ArrowsLeftRight,
-  ArrowsOutLineHorizontal,
-  Eye,
-  FileArrowDown,
-  Files,
-  HashStraight,
-  ImageSquare,
-  ImagesSquare,
-  LockKey,
-  MagnifyingGlass,
-  Scissors,
-  SquaresFour,
+  ArrowClockwiseIcon,
+  ArrowsLeftRightIcon,
+  ArrowsOutLineHorizontalIcon,
+  EyeIcon,
+  FileArrowDownIcon,
+  FilesIcon,
+  HashStraightIcon,
+  ImageSquareIcon,
+  ImagesSquareIcon,
+  LockKeyIcon,
+  MagnifyingGlassIcon,
+  ScissorsIcon,
+  SquaresFourIcon,
 } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
@@ -24,18 +24,18 @@ import { Input } from "@/components/ui/input"
 import { TOOLS_LIST, type ToolCategory } from "@/config/tools"
 
 const ICON_MAP: Record<string, React.ElementType> = {
-  FileArrowDown,
-  Files,
-  Scissors,
-  SquaresFour,
-  ArrowClockwise,
-  HashStraight,
-  LockKey,
-  Eye,
-  ImageSquare,
-  ArrowsOutLineHorizontal,
-  ArrowsLeftRight,
-  ImagesSquare,
+  FileArrowDown: FileArrowDownIcon,
+  Files: FilesIcon,
+  Scissors: ScissorsIcon,
+  SquaresFour: SquaresFourIcon,
+  ArrowClockwise: ArrowClockwiseIcon,
+  HashStraight: HashStraightIcon,
+  LockKey: LockKeyIcon,
+  Eye: EyeIcon,
+  ImageSquare: ImageSquareIcon,
+  ArrowsOutLineHorizontal: ArrowsOutLineHorizontalIcon,
+  ArrowsLeftRight: ArrowsLeftRightIcon,
+  ImagesSquare: ImagesSquareIcon,
 }
 
 export function ToolsCatalog() {
@@ -53,8 +53,8 @@ export function ToolsCatalog() {
   return (
     <>
       {/* Hero Section */}
-      <section className="border-b border-border/70 bg-muted/20 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section className="border-b border-border/70 bg-muted/20 px-4 py-12 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+        <div className="">
           <div className="max-w-3xl space-y-3">
             <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
               All PDF & Image Tools
@@ -67,7 +67,7 @@ export function ToolsCatalog() {
           {/* Search and Filters */}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative max-w-sm w-full">
-              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -135,7 +135,7 @@ export function ToolsCatalog() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredTools.map((tool) => {
-              const Icon = ICON_MAP[tool.iconName] || FileArrowDown
+              const Icon = ICON_MAP[tool.iconName] || FileArrowDownIcon
               return (
                 <Link key={tool.id} href={tool.href} className="group">
                   <Card className="h-full rounded-xl border-border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-xs flex flex-col justify-between">

@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 
-import { SiteHeader } from "@/components/site-header"
 import { PdfViewerTool } from "./pdf-viewer-tool"
 
 export const metadata: Metadata = {
@@ -10,11 +9,8 @@ export const metadata: Metadata = {
 
 export default function PdfViewerPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <SiteHeader nav={[{ href: "/tools", label: "All Tools" }, { href: "/tools/pdf-viewer", label: "PDF Viewer" }]} />
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <PdfViewerTool />
-      </div>
-    </main>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <PdfViewerTool />
+    </div>
   )
 }

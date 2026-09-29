@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { ArrowDown, ArrowUp, FilePdf, ImagesSquare, Sparkle, Trash, WarningCircle } from "@phosphor-icons/react"
+import { ArrowDownIcon, ArrowUpIcon, FilePdfIcon, ImagesSquareIcon, SparkleIcon, TrashIcon, WarningCircleIcon } from "@phosphor-icons/react"
 import { PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
 
@@ -181,7 +181,7 @@ export function ImagesToPdfTool() {
     <section className="py-6 sm:py-8">
       <div className="max-w-3xl">
         <Badge variant="outline" className="rounded-md border-primary/30 text-primary bg-primary/5 text-xs font-mono">
-          <ImagesSquare className="size-3.5 mr-1" weight="bold" /> Images to PDF
+          <ImagesSquareIcon className="size-3.5 mr-1" weight="bold" /> Images to PDF
         </Badge>
         <h1 className="mt-3 font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
           Convert images into a single PDF
@@ -244,7 +244,7 @@ export function ImagesToPdfTool() {
                           className="size-7"
                           title="Move up"
                         >
-                          <ArrowUp className="size-3.5" />
+                          <ArrowUpIcon className="size-3.5" />
                         </Button>
                         <Button
                           type="button"
@@ -255,7 +255,7 @@ export function ImagesToPdfTool() {
                           className="size-7"
                           title="Move down"
                         >
-                          <ArrowDown className="size-3.5" />
+                          <ArrowDownIcon className="size-3.5" />
                         </Button>
                         <Button
                           type="button"
@@ -265,7 +265,7 @@ export function ImagesToPdfTool() {
                           className="size-7 text-muted-foreground hover:text-destructive"
                           title="Remove"
                         >
-                          <Trash className="size-3.5" />
+                          <TrashIcon className="size-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -276,7 +276,7 @@ export function ImagesToPdfTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}
@@ -287,7 +287,7 @@ export function ImagesToPdfTool() {
               disabled={!items.length || isPending}
               className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             >
-              <Sparkle className="size-4" weight="fill" />
+              <SparkleIcon className="size-4" weight="fill" />
               <span>{isPending ? "Generating PDF..." : `Create PDF (${items.length} Images)`}</span>
             </Button>
           </CardContent>
@@ -312,7 +312,7 @@ export function ImagesToPdfTool() {
                 <div className="rounded-xl border border-border bg-muted/30 p-4">
                   <div className="flex items-center gap-3">
                     <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                      <FilePdf className="size-6" weight="duotone" />
+                      <FilePdfIcon className="size-6" weight="duotone" />
                     </span>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-foreground truncate">
@@ -336,7 +336,7 @@ export function ImagesToPdfTool() {
                   />
                 ) : (
                   <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
-                    <ImagesSquare className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                    <ImagesSquareIcon className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
                     Add images and click &quot;Create PDF&quot; to review the output file and preview pages.
                   </div>
                 )}

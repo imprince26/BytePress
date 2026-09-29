@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 
-import { SiteHeader } from "@/components/site-header"
 import { ToolsCatalog } from "./tools-catalog"
 
 export const metadata: Metadata = {
@@ -10,9 +9,8 @@ export const metadata: Metadata = {
 
 export default function ToolsPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <SiteHeader nav={[{ href: "/tools", label: "All Tools" }]} />
+    <div className="bg-background">
       <ToolsCatalog />
-    </main>
+    </div>
   )
 }

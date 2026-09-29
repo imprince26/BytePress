@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { ArrowClockwise, FilePdf, Sparkle, WarningCircle } from "@phosphor-icons/react"
+import { ArrowClockwiseIcon, FilePdfIcon, SparkleIcon, WarningCircleIcon } from "@phosphor-icons/react"
 import { degrees, PDFDocument } from "pdf-lib"
 import { toast } from "sonner"
 
@@ -84,7 +84,7 @@ export function PdfRotateTool() {
     <section className="py-6 sm:py-8">
       <div className="max-w-3xl">
         <Badge variant="outline" className="rounded-md border-primary/30 text-primary bg-primary/5 text-xs font-mono">
-          <ArrowClockwise className="size-3.5 mr-1" weight="bold" /> Rotate PDF
+          <ArrowClockwiseIcon className="size-3.5 mr-1" weight="bold" /> Rotate PDF
         </Badge>
         <h1 className="mt-3 font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
           Rotate PDF pages permanently
@@ -129,7 +129,7 @@ export function PdfRotateTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}
@@ -140,7 +140,7 @@ export function PdfRotateTool() {
               disabled={!file || isPending}
               className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             >
-              <Sparkle className="size-4" weight="fill" />
+              <SparkleIcon className="size-4" weight="fill" />
               <span>{isPending ? "Rotating Document..." : "Rotate PDF"}</span>
             </Button>
           </CardContent>
@@ -165,7 +165,7 @@ export function PdfRotateTool() {
                 <div className="rounded-xl border border-border bg-muted/30 p-4">
                   <div className="flex items-center gap-3">
                     <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                      <FilePdf className="size-6" weight="duotone" />
+                      <FilePdfIcon className="size-6" weight="duotone" />
                     </span>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-foreground truncate">
@@ -189,7 +189,7 @@ export function PdfRotateTool() {
                   />
                 ) : (
                   <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
-                    <ArrowClockwise className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                    <ArrowClockwiseIcon className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
                     Select an angle and click &quot;Rotate PDF&quot; to review and download the updated document.
                   </div>
                 )}

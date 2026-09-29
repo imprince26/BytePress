@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Scales, CheckCircle, Warning, FileText } from "@phosphor-icons/react/dist/ssr"
-
-import { SiteHeader } from "@/components/site-header"
+import { ScalesIcon, CheckCircleIcon, WarningIcon, FileTextIcon } from "@phosphor-icons/react/dist/ssr"
 
 export const metadata: Metadata = {
   title: "Terms of Service - BytePress",
@@ -13,15 +11,12 @@ export default function TermsPage() {
   const lastUpdated = "September 2026"
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <SiteHeader nav={[{ href: "/tools", label: "All Tools" }, { href: "/terms", label: "Terms of Service" }]} />
-
-      <main className="flex-1">
+    <div className="bg-background">
         {/* Header */}
         <section className="border-b border-border/70 bg-muted/20 px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-4xl space-y-3">
+          <div className="mx-auto max-w-7xl space-y-3">
             <div className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary">
-              <Scales className="size-4" weight="fill" />
+              <ScalesIcon className="size-4" weight="fill" />
               Legal Terms
             </div>
             <h1 className="font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
@@ -34,13 +29,13 @@ export default function TermsPage() {
         </section>
 
         {/* Content */}
-        <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="space-y-10 text-sm leading-relaxed text-muted-foreground">
             {/* Principles Grid */}
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3">
-                  <FileText className="size-5" weight="duotone" />
+                  <FileTextIcon className="size-5" weight="duotone" />
                 </div>
                 <h3 className="font-semibold text-foreground text-sm">Your Files, Your Rights</h3>
                 <p className="mt-1 text-xs text-muted-foreground leading-normal">
@@ -50,7 +45,7 @@ export default function TermsPage() {
 
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3">
-                  <CheckCircle className="size-5" weight="duotone" />
+                  <CheckCircleIcon className="size-5" weight="duotone" />
                 </div>
                 <h3 className="font-semibold text-foreground text-sm">Fair & Lawful Use</h3>
                 <p className="mt-1 text-xs text-muted-foreground leading-normal">
@@ -60,7 +55,7 @@ export default function TermsPage() {
 
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3">
-                  <Warning className="size-5" weight="duotone" />
+                  <WarningIcon className="size-5" weight="duotone" />
                 </div>
                 <h3 className="font-semibold text-foreground text-sm">As-Is Utility</h3>
                 <p className="mt-1 text-xs text-muted-foreground leading-normal">
@@ -171,7 +166,6 @@ export default function TermsPage() {
             </div>
           </div>
         </section>
-      </main>
     </div>
   )
 }

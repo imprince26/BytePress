@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { ArrowsLeftRight, ImageSquare, Sparkle, WarningCircle } from "@phosphor-icons/react"
+import { ArrowsLeftRightIcon, ImageSquareIcon, SparkleIcon, WarningCircleIcon } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -129,7 +129,7 @@ export function ImageConvertTool() {
     <section className="py-6 sm:py-8">
       <div className="max-w-3xl">
         <Badge variant="outline" className="rounded-md border-primary/30 text-primary bg-primary/5 text-xs font-mono">
-          <ArrowsLeftRight className="size-3.5 mr-1" weight="bold" /> Convert Image
+          <ArrowsLeftRightIcon className="size-3.5 mr-1" weight="bold" /> Convert Image
         </Badge>
         <h1 className="mt-3 font-heading text-3xl sm:text-4xl font-black tracking-tight text-foreground">
           Convert images between formats
@@ -201,7 +201,7 @@ export function ImageConvertTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}
@@ -212,7 +212,7 @@ export function ImageConvertTool() {
               disabled={!file || isPending}
               className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             >
-              <Sparkle className="size-4" weight="fill" />
+              <SparkleIcon className="size-4" weight="fill" />
               <span>{isPending ? "Converting Image..." : `Convert to ${format.split("/")[1].toUpperCase()}`}</span>
             </Button>
           </CardContent>
@@ -244,7 +244,7 @@ export function ImageConvertTool() {
                     />
                   ) : (
                     <div className="flex aspect-video flex-col items-center justify-center text-muted-foreground">
-                      <ImageSquare className="size-10 text-muted-foreground/40 mb-2" weight="duotone" />
+                      <ImageSquareIcon className="size-10 text-muted-foreground/40 mb-2" weight="duotone" />
                       <p className="text-xs">No image selected</p>
                     </div>
                   )}

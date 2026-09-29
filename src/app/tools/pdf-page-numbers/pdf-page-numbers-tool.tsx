@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react"
 import {
-  FilePdf,
-  HashStraight,
-  WarningCircle,
+  FilePdfIcon,
+  HashStraightIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
@@ -185,7 +185,7 @@ export function PdfPageNumbersTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}
@@ -196,7 +196,7 @@ export function PdfPageNumbersTool() {
               disabled={!file || isPending}
               className="h-10 w-full rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
             >
-              <HashStraight className="size-4" weight="bold" />
+              <HashStraightIcon className="size-4" weight="bold" />
               <span>{isPending ? "Adding Numbers..." : "Apply Page Numbers"}</span>
             </Button>
           </CardContent>
@@ -220,7 +220,7 @@ export function PdfPageNumbersTool() {
               <>
                 <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
-                    <FilePdf className="size-5" weight="duotone" />
+                    <FilePdfIcon className="size-5" weight="duotone" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
@@ -239,7 +239,7 @@ export function PdfPageNumbersTool() {
               </>
             ) : (
               <div className="rounded-lg border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
-                <HashStraight className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
+                <HashStraightIcon className="size-8 mx-auto mb-2 text-muted-foreground/40" weight="duotone" />
                 Upload a PDF and click &quot;Apply Page Numbers&quot; to review the output.
               </div>
             )}

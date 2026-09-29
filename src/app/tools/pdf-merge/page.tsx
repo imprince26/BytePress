@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 
-import { SiteHeader } from "@/components/site-header"
 import { PdfMergeTool } from "./pdf-merge-tool"
 
 export const metadata: Metadata = {
@@ -10,11 +9,8 @@ export const metadata: Metadata = {
 
 export default function PdfMergePage() {
   return (
-    <main className="min-h-screen bg-background">
-      <SiteHeader nav={[{ href: "/tools", label: "All Tools" }, { href: "/tools/pdf-merge", label: "Merge PDF" }]} />
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <PdfMergeTool />
-      </div>
-    </main>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <PdfMergeTool />
+    </div>
   )
 }

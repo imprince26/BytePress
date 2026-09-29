@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState, useTransition } from "react"
 import {
-  ArrowsIn,
-  ArrowsOut,
-  FilePdf,
-  WarningCircle,
+  ArrowsInIcon,
+  ArrowsOutIcon,
+  FilePdfIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react"
 import { PDFDocument } from "pdf-lib"
 
@@ -106,7 +106,7 @@ export function PdfViewerTool() {
 
             {error && (
               <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                <WarningCircle className="size-4 shrink-0" weight="fill" />
+                <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
                 <span>{error}</span>
               </div>
             )}
@@ -125,7 +125,7 @@ export function PdfViewerTool() {
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3 bg-muted/30 p-3 rounded-lg border border-border">
               <div className="flex items-center gap-2.5">
-                <FilePdf className="size-5 text-primary shrink-0" weight="duotone" />
+                <FilePdfIcon className="size-5 text-primary shrink-0" weight="duotone" />
                 <div>
                   <p className="text-xs font-semibold text-foreground truncate max-w-xs sm:max-w-md">
                     {file.name}
@@ -143,7 +143,7 @@ export function PdfViewerTool() {
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 className="h-8 gap-1 text-xs"
               >
-                {isFullscreen ? <ArrowsIn className="size-3.5" /> : <ArrowsOut className="size-3.5" />}
+                {isFullscreen ? <ArrowsInIcon className="size-3.5" /> : <ArrowsOutIcon className="size-3.5" />}
                 <span>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</span>
               </Button>
             </div>
@@ -174,7 +174,7 @@ export function PdfViewerTool() {
                 className="w-full h-full border-none"
               >
                 <div className="flex flex-col items-center justify-center h-full p-8 text-center text-muted-foreground">
-                  <FilePdf className="size-16 text-primary mb-3" weight="duotone" />
+                  <FilePdfIcon className="size-16 text-primary mb-3" weight="duotone" />
                   <p className="text-sm font-semibold text-foreground">
                     PDF Viewer preview not available in this frame.
                   </p>
