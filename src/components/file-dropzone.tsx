@@ -111,7 +111,7 @@ export function FileDropzone({
             }
           }}
         >
-          <div className="w-full h-full max-w-4xl border-2 border-dashed border-primary bg-primary/[0.04] rounded-3xl flex flex-col items-center justify-center text-center p-8 pointer-events-none shadow-2xl">
+          <div className="w-full h-full max-w-4xl border-2 border-dashed border-primary bg-primary/4 rounded-3xl flex flex-col items-center justify-center text-center p-8 pointer-events-none shadow-2xl">
             <div className="flex size-20 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-5 shadow-sm animate-pulse">
               <UploadSimpleIcon className="size-10" weight="bold" />
             </div>
@@ -143,7 +143,7 @@ export function FileDropzone({
         className={cn(
           "group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card/60 p-6 sm:p-8 text-center transition-all duration-200",
           "hover:border-primary/60 hover:bg-muted/40 hover:shadow-sm",
-          isHoverDragging && "border-primary bg-primary/[0.04] ring-2 ring-primary/20",
+          isHoverDragging && "border-primary bg-primary/4 ring-2 ring-primary/20",
           className
         )}
         onDragOver={(event) => {

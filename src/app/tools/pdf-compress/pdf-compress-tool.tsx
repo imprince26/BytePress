@@ -130,7 +130,7 @@ export function PdfCompressTool() {
                       onClick={() => setLevel(item.id)}
                       className={`text-left p-3 rounded-lg border transition-all flex items-center justify-between gap-3 ${
                         isSelected
-                          ? "border-primary bg-primary/[0.04] ring-1 ring-primary"
+                          ? "border-primary bg-primary/4 ring-1 ring-primary"
                           : "border-border bg-background hover:bg-muted/40"
                       }`}
                     >

@@ -69,7 +69,7 @@ export function PdfViewerModal({
         className={`flex flex-col w-full bg-background border border-border shadow-2xl transition-all rounded-xl overflow-hidden ${
           isFullscreen
             ? "fixed inset-0 rounded-none z-50 h-full"
-            : "max-w-5xl h-[92vh] max-h-[900px]"
+            : "max-w-5xl h-[92vh] max-h-225"
         }`}
       >
         {/* Header bar */}

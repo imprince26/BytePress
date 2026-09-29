@@ -43,11 +43,13 @@ const DIRECT_LINKS = [
     title: "Compress PDF",
     href: "/tools/pdf-compress",
     icon: FileArrowDownIcon,
+    badge: "Fast",
   },
   {
     title: "Compress Image",
     href: "/tools/image-compress",
     icon: SparkleIcon,
+    badge: "Popular",
   },
   {
     title: "Merge PDF",
@@ -66,7 +68,7 @@ const CONVERT_TOOLS = [
   },
   {
     title: "Images to PDF",
-    description: "Compile multiple photos into a single PDF book",
+    description: "Compile multiple photos into a single PDF document",
     href: "/tools/images-to-pdf",
     icon: ImagesSquareIcon,
   },
@@ -123,7 +125,7 @@ export function SiteHeader({ className }: SiteHeaderProps) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const [activeDropdown, setActiveDropdown] = React.useState<"convert" | "more" | null>(null)
   const [mobileConvertOpen, setMobileConvertOpen] = React.useState(true)
-  const [mobileMoreOpen, setMobileMoreOpen] = React.useState(false)
+  const [mobileMoreOpen, setMobileMoreOpen] = React.useState(true)
   const timerRef = React.useRef<NodeJS.Timeout | null>(null)
 
   // Hover handlers with debounce timer for smooth desktop feel
@@ -356,35 +358,43 @@ export function SiteHeader({ className }: SiteHeaderProps) {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="size-9 rounded-lg border-border text-foreground hover:bg-accent"
+                  className="size-9 rounded-lg border-border text-foreground hover:bg-accent active:scale-95 transition-all"
                   aria-label="Open Navigation Menu"
                 >
                   <ListIcon className="size-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[85vw] max-w-sm p-0 flex flex-col justify-between">
-                <div>
+              <SheetContent
+                side="right"
+                className="w-[88vw] max-w-sm p-0 flex flex-col justify-between border-l border-border bg-background/98 backdrop-blur-xl"
+              >
+                <div className="flex flex-col h-full overflow-hidden">
                   {/* Sheet Header */}
-                  <SheetHeader className="p-4 border-b border-border">
-                    <SheetTitle className="flex items-center gap-2 text-base font-bold">
-                      <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-2xs">
-                        <CpuIcon className="size-4" weight="bold" />
-                      </span>
-                      <span>BytePress</span>
-                    </SheetTitle>
-                    <SheetDescription className="text-xs text-muted-foreground">
-                      Fast, private browser document tools
+                  <SheetHeader className="px-5 py-4 border-b border-border/80 bg-muted/20 shrink-0">
+                    <div className="flex items-center justify-between">
+                      <SheetTitle className="flex items-center gap-2.5 text-base font-bold text-foreground">
+                        <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-2xs">
+                          <CpuIcon className="size-4.5" weight="bold" />
+                        </span>
+                        <span>BytePress</span>
+                      </SheetTitle>
+                    </div>
+                    <SheetDescription className="text-xs text-muted-foreground mt-1">
+                      Online document and image processing suite
                     </SheetDescription>
                   </SheetHeader>
 
                   {/* Scrollable Tool Links */}
-                  <div className="p-4 space-y-4 max-h-[calc(100vh-180px)] overflow-y-auto">
+                  <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
                     {/* Quick Access Tools */}
                     <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 mb-2">
-                        Popular Tools
-                      </p>
-                      <div className="space-y-1">
+                      <div className="flex items-center justify-between px-1 mb-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                          Popular Tools
+                        </span>
+                        <span className="text-[10px] font-mono text-primary font-semibold">1-Tap Direct</span>
+                      </div>
+                      <div className="grid gap-2">
                         {DIRECT_LINKS.map((link) => {
                           const Icon = link.icon
                           const isActive = pathname === link.href
@@ -392,41 +402,76 @@ export function SiteHeader({ className }: SiteHeaderProps) {
                             <Link
                               key={link.href}
                               href={link.href}
+                              onClick={() => setMobileOpen(false)}
                               className={cn(
-                                "flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                                "flex items-center justify-between rounded-xl border p-2.5 text-xs font-medium transition-all active:scale-[0.98]",
                                 isActive
-                                  ? "bg-primary text-primary-foreground font-semibold"
-                                  : "text-foreground hover:bg-muted"
+                                  ? "border-primary bg-primary text-primary-foreground shadow-xs font-semibold"
+                                  : "border-border/80 bg-card hover:border-primary/50 hover:bg-muted/40 text-foreground"
                               )}
                             >
-                              <Icon className="size-4 shrink-0" weight="duotone" />
-                              <span>{link.title}</span>
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className={cn(
+                                    "flex size-7 items-center justify-center rounded-lg shrink-0",
+                                    isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
+                                  )}
+                                >
+                                  <Icon className="size-4" weight="duotone" />
+                                </span>
+                                <span>{link.title}</span>
+                              </div>
+                              {link.badge && (
+                                <span
+                                  className={cn(
+                                    "rounded px-1.5 py-0.5 text-[10px] font-mono font-medium",
+                                    isActive
+                                      ? "bg-primary-foreground/20 text-primary-foreground"
+                                      : "bg-primary/10 text-primary"
+                                  )}
+                                >
+                                  {link.badge}
+                                </span>
+                              )}
                             </Link>
                           )
                         })}
                       </div>
                     </div>
 
-                    {/* Collapsible Convert Suite */}
-                    <div className="rounded-xl border border-border/80 overflow-hidden">
+                    {/* Collapsible Convert Suite (Smooth Grid Rows Transition) */}
+                    <div className="rounded-xl border border-border/80 bg-card overflow-hidden shadow-2xs">
                       <button
                         type="button"
                         onClick={() => setMobileConvertOpen(!mobileConvertOpen)}
-                        className="flex w-full items-center justify-between p-3 text-xs font-bold text-foreground bg-muted/30 hover:bg-muted/50 transition-colors"
+                        className="flex w-full items-center justify-between p-3 text-xs font-bold text-foreground bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer"
                       >
                         <span className="flex items-center gap-2">
-                          <ArrowsLeftRightIcon className="size-4 text-primary" weight="bold" />
+                          <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+                            <ArrowsLeftRightIcon className="size-3.5" weight="bold" />
+                          </span>
                           <span>Convert Tools</span>
                         </span>
-                        <CaretDownIcon
-                          className={cn(
-                            "size-3.5 text-muted-foreground transition-transform",
-                            mobileConvertOpen && "rotate-180 text-foreground"
-                          )}
-                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                            {CONVERT_TOOLS.length}
+                          </span>
+                          <CaretDownIcon
+                            className={cn(
+                              "size-3.5 text-muted-foreground transition-transform duration-250 ease-out",
+                              mobileConvertOpen && "rotate-180 text-foreground"
+                            )}
+                          />
+                        </div>
                       </button>
-                      {mobileConvertOpen && (
-                        <div className="p-2 space-y-1 border-t border-border/60 bg-card">
+
+                      <div
+                        className={cn(
+                          "grid transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                          mobileConvertOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        )}
+                      >
+                        <div className="overflow-hidden border-t border-border/60 p-2 space-y-1">
                           {CONVERT_TOOLS.map((tool) => {
                             const Icon = tool.icon
                             const isActive = pathname === tool.href
@@ -434,45 +479,61 @@ export function SiteHeader({ className }: SiteHeaderProps) {
                               <Link
                                 key={tool.href}
                                 href={tool.href}
+                                onClick={() => setMobileOpen(false)}
                                 className={cn(
-                                  "flex items-start gap-2.5 rounded-lg p-2 text-xs transition-colors",
+                                  "flex items-start gap-3 rounded-lg p-2 text-xs transition-all active:scale-[0.98]",
                                   isActive
                                     ? "bg-primary/10 text-primary font-semibold"
-                                    : "text-foreground hover:bg-muted"
+                                    : "text-foreground hover:bg-muted/70"
                                 )}
                               >
-                                <Icon className="size-4 shrink-0 text-muted-foreground mt-0.5" />
-                                <div>
-                                  <p className="font-semibold">{tool.title}</p>
-                                  <p className="text-[10px] text-muted-foreground">{tool.description}</p>
+                                <span className="flex size-7 items-center justify-center rounded-md bg-muted text-foreground/80 shrink-0 mt-0.5">
+                                  <Icon className="size-4" weight="duotone" />
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="font-semibold leading-tight">{tool.title}</p>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{tool.description}</p>
                                 </div>
                               </Link>
                             )
                           })}
                         </div>
-                      )}
+                      </div>
                     </div>
 
-                    {/* Collapsible More Tools */}
-                    <div className="rounded-xl border border-border/80 overflow-hidden">
+                    {/* Collapsible More Tools (Smooth Grid Rows Transition) */}
+                    <div className="rounded-xl border border-border/80 bg-card overflow-hidden shadow-2xs">
                       <button
                         type="button"
                         onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
-                        className="flex w-full items-center justify-between p-3 text-xs font-bold text-foreground bg-muted/30 hover:bg-muted/50 transition-colors"
+                        className="flex w-full items-center justify-between p-3 text-xs font-bold text-foreground bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer"
                       >
                         <span className="flex items-center gap-2">
-                          <SquaresFourIcon className="size-4 text-primary" weight="bold" />
+                          <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+                            <SquaresFourIcon className="size-3.5" weight="bold" />
+                          </span>
                           <span>PDF & More Tools</span>
                         </span>
-                        <CaretDownIcon
-                          className={cn(
-                            "size-3.5 text-muted-foreground transition-transform",
-                            mobileMoreOpen && "rotate-180 text-foreground"
-                          )}
-                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                            {MORE_TOOLS.length}
+                          </span>
+                          <CaretDownIcon
+                            className={cn(
+                              "size-3.5 text-muted-foreground transition-transform duration-250 ease-out",
+                              mobileMoreOpen && "rotate-180 text-foreground"
+                            )}
+                          />
+                        </div>
                       </button>
-                      {mobileMoreOpen && (
-                        <div className="p-2 space-y-1 border-t border-border/60 bg-card">
+
+                      <div
+                        className={cn(
+                          "grid transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                          mobileMoreOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        )}
+                      >
+                        <div className="overflow-hidden border-t border-border/60 p-2 space-y-1">
                           {MORE_TOOLS.map((tool) => {
                             const Icon = tool.icon
                             const isActive = pathname === tool.href
@@ -480,42 +541,57 @@ export function SiteHeader({ className }: SiteHeaderProps) {
                               <Link
                                 key={tool.href}
                                 href={tool.href}
+                                onClick={() => setMobileOpen(false)}
                                 className={cn(
-                                  "flex items-start gap-2.5 rounded-lg p-2 text-xs transition-colors",
+                                  "flex items-start gap-3 rounded-lg p-2 text-xs transition-all active:scale-[0.98]",
                                   isActive
                                     ? "bg-primary/10 text-primary font-semibold"
-                                    : "text-foreground hover:bg-muted"
+                                    : "text-foreground hover:bg-muted/70"
                                 )}
                               >
-                                <Icon className="size-4 shrink-0 text-muted-foreground mt-0.5" />
-                                <div>
-                                  <p className="font-semibold">{tool.title}</p>
-                                  <p className="text-[10px] text-muted-foreground">{tool.description}</p>
+                                <span className="flex size-7 items-center justify-center rounded-md bg-muted text-foreground/80 shrink-0 mt-0.5">
+                                  <Icon className="size-4" weight="duotone" />
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="font-semibold leading-tight">{tool.title}</p>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{tool.description}</p>
                                 </div>
                               </Link>
                             )
                           })}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Mobile Drawer Bottom Action */}
-                <div className="p-4 border-t border-border bg-muted/20 space-y-2">
-                  <Button
-                    asChild
-                    className="w-full h-10 text-xs font-semibold gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                  >
-                    <Link href="/tools">
-                      <LightningIcon className="size-4" weight="fill" />
-                      <span>Explore All Tools</span>
-                    </Link>
-                  </Button>
-                  <div className="flex justify-center gap-4 pt-1 text-[11px] text-muted-foreground">
-                    <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
-                    <span>•</span>
-                    <Link href="/terms" className="hover:underline">Terms of Service</Link>
+                  {/* Mobile Drawer Bottom Action */}
+                  <div className="p-4 border-t border-border bg-muted/30 shrink-0 space-y-2.5">
+                    <Button
+                      asChild
+                      className="w-full h-11 text-xs font-semibold gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-xs"
+                    >
+                      <Link href="/tools" onClick={() => setMobileOpen(false)}>
+                        <LightningIcon className="size-4" weight="fill" />
+                        <span>Browse All 12 Tools</span>
+                      </Link>
+                    </Button>
+                    <div className="flex justify-center items-center gap-3 pt-0.5 text-[11px] text-muted-foreground">
+                      <Link
+                        href="/privacy"
+                        onClick={() => setMobileOpen(false)}
+                        className="hover:text-foreground transition-colors"
+                      >
+                        Privacy Policy
+                      </Link>
+                      <span>•</span>
+                      <Link
+                        href="/terms"
+                        onClick={() => setMobileOpen(false)}
+                        className="hover:text-foreground transition-colors"
+                      >
+                        Terms of Service
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </SheetContent>

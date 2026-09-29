@@ -152,7 +152,7 @@ export function PdfViewerTool() {
               className={`rounded-xl border border-border bg-slate-900/10 dark:bg-black/40 overflow-hidden transition-all ${
                 isFullscreen
                   ? "fixed inset-0 z-50 rounded-none h-full bg-background"
-                  : "w-full h-[650px] sm:h-[750px]"
+                  : "w-full h-162.5 sm:h-187.5"
               }`}
             >
               {isFullscreen && (
