@@ -25,6 +25,13 @@ export function PdfRotateTool() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const resultUrlRef = useRef<string | null>(null)
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   useEffect(() => {
     return () => {
@@ -94,22 +101,24 @@ export function PdfRotateTool() {
         </p>
       </div>
 
-      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="rounded-2xl border-border bg-card shadow-xs">
+      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] min-w-0 w-full">
+        <Card className="rounded-2xl border-border bg-card shadow-xs min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Rotation Settings</CardTitle>
             <CardDescription className="text-xs">
               Select orientation angle to apply to document pages.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <FileDropzone
-              id="pdf-rotate-input"
-              title={file ? file.name : "Drop a PDF document here"}
-              description={file ? `File size: ${formatBytes(file.size)}` : "PDF documents up to 50 MB"}
-              accept="application/pdf"
-              onFiles={(files) => chooseFile(files?.[0] ?? null)}
-            />
+          <CardContent className="space-y-5 min-w-0">
+            <div className="min-w-0">
+              <FileDropzone
+                id="pdf-rotate-input"
+                title={file ? file.name : "Drop a PDF document here"}
+                description={file ? `File size: ${formatBytes(file.size)}` : "PDF documents up to 50 MB"}
+                accept="application/pdf"
+                onFiles={(files) => chooseFile(files?.[0] ?? null)}
+              />
+            </div>
 
             <div>
               <Label htmlFor="rotation-angle" className="text-xs font-semibold text-foreground">
@@ -147,14 +156,14 @@ export function PdfRotateTool() {
         </Card>
 
         {/* Right Column */}
-        <Card className="rounded-2xl border-border bg-card shadow-xs">
+        <Card ref={outputRef} id="output-section" className="rounded-2xl border-border bg-card shadow-xs min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Rotated Output</CardTitle>
             <CardDescription className="text-xs">
               Inspect your rotated pages or save the updated file.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 min-w-0">
             {isPending ? (
               <ToolProcessingState
                 title="Rotating PDF Pages..."
@@ -162,13 +171,13 @@ export function PdfRotateTool() {
               />
             ) : (
               <>
-                <div className="rounded-xl border border-border bg-muted/30 p-4">
-                  <div className="flex items-center gap-3">
+                <div className="rounded-xl border border-border bg-muted/30 p-4 min-w-0 w-full">
+                  <div className="flex items-center gap-3 min-w-0">
                     <span className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
                       <FilePdfIcon className="size-6" weight="duotone" />
                     </span>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-foreground truncate break-all">
                         {file ? file.name : "No document selected"}
                       </p>
                       <p className="text-[11px] text-muted-foreground">

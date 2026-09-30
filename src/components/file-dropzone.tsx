@@ -141,7 +141,7 @@ export function FileDropzone({
       <label
         htmlFor={id}
         className={cn(
-          "group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card/60 p-6 sm:p-8 text-center transition-all duration-200",
+          "group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card/60 p-6 sm:p-8 text-center transition-all duration-200 w-full min-w-0 max-w-full overflow-hidden",
           "hover:border-primary/60 hover:bg-muted/40 hover:shadow-sm",
           isHoverDragging && "border-primary bg-primary/4 ring-2 ring-primary/20",
           className
@@ -157,15 +157,18 @@ export function FileDropzone({
           onFiles(event.dataTransfer.files)
         }}
       >
-        <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all duration-200 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground shadow-xs">
+        <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all duration-200 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground shadow-xs shrink-0">
           <FilePlusIcon className="size-7" weight="duotone" />
         </span>
 
-        <span className="mt-4 font-heading text-base sm:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+        <span
+          className="mt-4 block w-full max-w-full px-2 font-heading text-base sm:text-lg font-bold tracking-tight text-foreground group-hover:text-primary transition-colors truncate text-center"
+          title={title}
+        >
           {title}
         </span>
 
-        <span className="mt-1 max-w-md text-xs sm:text-sm leading-relaxed text-muted-foreground">
+        <span className="mt-1 block max-w-md w-full px-2 text-xs sm:text-sm leading-relaxed text-muted-foreground truncate text-center">
           {description}
         </span>
 

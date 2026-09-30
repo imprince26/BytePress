@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -29,6 +29,13 @@ export function PdfProtectTool() {
   const [result, setResult] = useState<ProtectPdfResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   function handleFileSelect(selectedFiles: FileList | null) {
     setError(null)
@@ -93,23 +100,25 @@ export function PdfProtectTool() {
         </p>
       </div>
 
-      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] min-w-0 w-full">
         {/* Left Column */}
-        <Card className="rounded-xl border-border bg-card">
+        <Card className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Document & Password</CardTitle>
             <CardDescription className="text-xs">
               Upload your PDF and set a security password.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <FileDropzone
-              id="pdf-protect-input"
-              title={file ? file.name : "Select or drop a PDF file"}
-              description={file ? `File size: ${formatBytes(file.size)}` : "PDF files up to 50 MB"}
-              accept="application/pdf"
-              onFiles={(files) => handleFileSelect(files)}
-            />
+          <CardContent className="space-y-5 min-w-0">
+            <div className="min-w-0">
+              <FileDropzone
+                id="pdf-protect-input"
+                title={file ? file.name : "Select or drop a PDF file"}
+                description={file ? `File size: ${formatBytes(file.size)}` : "PDF files up to 50 MB"}
+                accept="application/pdf"
+                onFiles={(files) => handleFileSelect(files)}
+              />
+            </div>
 
             {/* Passwords */}
             <div className="space-y-3 pt-1">
@@ -173,14 +182,14 @@ export function PdfProtectTool() {
         </Card>
 
         {/* Right Column */}
-        <Card className="rounded-xl border-border bg-card">
+        <Card ref={outputRef} id="output-section" className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Protected Output</CardTitle>
             <CardDescription className="text-xs">
               Save your encrypted document.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 min-w-0">
             {isPending ? (
               <ToolProcessingState
                 title="Encrypting PDF with AES-256..."
@@ -188,12 +197,12 @@ export function PdfProtectTool() {
               />
             ) : result ? (
               <>
-                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
+                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3 min-w-0 w-full">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
                     <FilePdfIcon className="size-5" weight="duotone" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-foreground truncate break-all">{result.name}</p>
                     <p className="text-[11px] text-muted-foreground">{formatBytes(result.size)} • Encrypted</p>
                   </div>
                 </div>

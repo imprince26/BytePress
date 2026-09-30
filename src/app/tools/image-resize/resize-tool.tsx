@@ -57,6 +57,13 @@ export function ImageResizeTool() {
   const [isPending, startTransition] = useTransition()
   const previewUrlRef = useRef<string | null>(null)
   const resultUrlRef = useRef<string | null>(null)
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   useEffect(() => {
     return () => {
@@ -171,18 +178,18 @@ export function ImageResizeTool() {
         </p>
       </div>
 
-      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="rounded-2xl border-border bg-card shadow-xs">
+      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] min-w-0 w-full">
+        <Card className="rounded-2xl border-border bg-card shadow-xs min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Dimension Settings</CardTitle>
             <CardDescription className="text-xs">
               Specify exact width, height, and target image format.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <div>
+          <CardContent className="space-y-5 min-w-0">
+            <div className="min-w-0">
               <Label htmlFor="image-resize-file" className="text-xs font-semibold text-foreground">Image File</Label>
-              <div className="mt-1.5">
+              <div className="mt-1.5 min-w-0">
                 <FileDropzone
                   id="image-resize-file"
                   title={file ? file.name : "Drop an image here"}
@@ -280,14 +287,14 @@ export function ImageResizeTool() {
         </Card>
 
         {/* Right Column */}
-        <Card className="rounded-2xl border-border bg-card shadow-xs">
+        <Card ref={outputRef} id="output-section" className="rounded-2xl border-border bg-card shadow-xs min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Preview & Output</CardTitle>
             <CardDescription className="text-xs">
               Inspect resized dimensions and save to your preferred directory.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 min-w-0">
             {isPending ? (
               <ToolProcessingState
                 title="Resizing Image..."

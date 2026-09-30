@@ -25,6 +25,13 @@ export function PdfViewerTool() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const urlRef = useRef<string | null>(null)
+  const viewerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (pdfUrl && file && viewerRef.current && window.innerWidth < 1024) {
+      viewerRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [pdfUrl, file])
 
   useEffect(() => {
     return () => {
@@ -87,27 +94,29 @@ export function PdfViewerTool() {
         </p>
       </div>
 
-      <div id="tool-workspace" className="space-y-6">
-        <Card className="rounded-xl border-border bg-card">
+      <div id="tool-workspace" className="space-y-6 min-w-0 w-full">
+        <Card className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Document Upload</CardTitle>
             <CardDescription className="text-xs">
               Upload a PDF document to read and inspect.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <FileDropzone
-              id="pdf-viewer-input"
-              title={file ? file.name : "Select or drop a PDF file"}
-              description={file ? `${formatBytes(file.size)} ${pageCount ? `• ${pageCount} pages` : ""}` : "PDF files up to 50 MB"}
-              accept="application/pdf"
-              onFiles={(files) => handleFileSelect(files)}
-            />
+          <CardContent className="space-y-4 min-w-0">
+            <div className="min-w-0">
+              <FileDropzone
+                id="pdf-viewer-input"
+                title={file ? file.name : "Select or drop a PDF file"}
+                description={file ? `${formatBytes(file.size)} ${pageCount ? `• ${pageCount} pages` : ""}` : "PDF files up to 50 MB"}
+                accept="application/pdf"
+                onFiles={(files) => handleFileSelect(files)}
+              />
+            </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive min-w-0">
                 <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
-                <span>{error}</span>
+                <span className="truncate break-all">{error}</span>
               </div>
             )}
           </CardContent>
@@ -122,12 +131,12 @@ export function PdfViewerTool() {
 
         {/* PDF Viewer Interface */}
         {pdfUrl && file && (
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-muted/30 p-3 rounded-lg border border-border">
-              <div className="flex items-center gap-2.5">
+          <div ref={viewerRef} id="output-section" className="space-y-4 min-w-0 w-full">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-muted/30 p-3 rounded-lg border border-border min-w-0 w-full">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <FilePdfIcon className="size-5 text-primary shrink-0" weight="duotone" />
-                <div>
-                  <p className="text-xs font-semibold text-foreground truncate max-w-xs sm:max-w-md">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-foreground truncate break-all">
                     {file.name}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
@@ -141,7 +150,7 @@ export function PdfViewerTool() {
                 variant="outline"
                 size="sm"
                 onClick={() => setIsFullscreen(!isFullscreen)}
-                className="h-8 gap-1 text-xs"
+                className="h-8 gap-1 text-xs shrink-0 cursor-pointer"
               >
                 {isFullscreen ? <ArrowsInIcon className="size-3.5" /> : <ArrowsOutIcon className="size-3.5" />}
                 <span>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}</span>

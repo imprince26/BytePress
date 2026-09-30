@@ -74,13 +74,13 @@ export function PdfViewerModal({
       >
         {/* Header bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
               <FilePdfIcon className="size-5" weight="duotone" />
             </span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold truncate text-foreground">{fileName}</p>
+                <p className="text-sm font-semibold truncate break-all text-foreground" title={fileName}>{fileName}</p>
               </div>
               {fileSize !== undefined && (
                 <p className="text-xs text-muted-foreground">{formatBytes(fileSize)}</p>
@@ -89,7 +89,7 @@ export function PdfViewerModal({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {isFileSystemAccessSupported() && (
               <Button
                 variant="outline"

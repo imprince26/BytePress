@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import {
   FileArrowDownIcon,
   WarningCircleIcon,
@@ -45,6 +45,13 @@ export function PdfCompressTool() {
   const [result, setResult] = useState<CompressPdfResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   function handleFileSelect(selectedFiles: FileList | null) {
     setError(null)
@@ -97,30 +104,32 @@ export function PdfCompressTool() {
       </div>
 
       {/* Main Workspace */}
-      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] min-w-0 w-full">
         {/* Left Column: Upload & Configuration */}
-        <Card className="rounded-xl border-border bg-card">
+        <Card className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Document & Settings</CardTitle>
             <CardDescription className="text-xs">
               Choose your PDF and select a compression profile.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <FileDropzone
-              id="pdf-compress-input"
-              title={file ? file.name : "Select or drop a PDF file"}
-              description={file ? `File size: ${formatBytes(file.size)}` : "PDF files up to 50 MB"}
-              accept="application/pdf"
-              onFiles={(files) => handleFileSelect(files)}
-            />
+          <CardContent className="space-y-5 min-w-0">
+            <div className="min-w-0">
+              <FileDropzone
+                id="pdf-compress-input"
+                title={file ? file.name : "Select or drop a PDF file"}
+                description={file ? `File size: ${formatBytes(file.size)}` : "PDF files up to 50 MB"}
+                accept="application/pdf"
+                onFiles={(files) => handleFileSelect(files)}
+              />
+            </div>
 
             {/* Compression Level Selector */}
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               <label className="text-xs font-semibold text-foreground">
                 Compression Level
               </label>
-              <div className="grid gap-2">
+              <div className="grid gap-2 min-w-0">
                 {COMPRESSION_LEVELS.map((item) => {
                   const isSelected = level === item.id
                   return (
@@ -128,17 +137,17 @@ export function PdfCompressTool() {
                       type="button"
                       key={item.id}
                       onClick={() => setLevel(item.id)}
-                      className={`text-left p-3 rounded-lg border transition-all flex items-center justify-between gap-3 ${
+                      className={`text-left p-3 rounded-lg border transition-all flex items-center justify-between gap-3 min-w-0 cursor-pointer ${
                         isSelected
                           ? "border-primary bg-primary/4 ring-1 ring-primary"
                           : "border-border bg-background hover:bg-muted/40"
                       }`}
                     >
-                      <div className="space-y-0.5">
-                        <span className={`text-xs font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}>
+                      <div className="space-y-0.5 min-w-0 flex-1">
+                        <span className={`text-xs font-semibold block truncate ${isSelected ? "text-primary" : "text-foreground"}`}>
                           {item.title}
                         </span>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground truncate">
                           {item.desc}
                         </p>
                       </div>
@@ -154,9 +163,9 @@ export function PdfCompressTool() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive min-w-0">
                 <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
-                <span>{error}</span>
+                <span className="truncate break-all">{error}</span>
               </div>
             )}
 
@@ -164,7 +173,7 @@ export function PdfCompressTool() {
               type="button"
               onClick={handleCompress}
               disabled={!file || isPending}
-              className="h-10 w-full rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              className="h-10 w-full rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2 cursor-pointer"
             >
               <FileArrowDownIcon className="size-4" weight="bold" />
               <span>{isPending ? "Compressing PDF..." : "Compress PDF"}</span>
@@ -173,14 +182,14 @@ export function PdfCompressTool() {
         </Card>
 
         {/* Right Column: Output */}
-        <Card className="rounded-xl border-border bg-card">
+        <Card ref={outputRef} id="output-section" className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Output File</CardTitle>
             <CardDescription className="text-xs">
               Review and preview your compressed file.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 min-w-0">
             {isPending ? (
               <ToolProcessingState
                 title="Compressing your PDF document..."
@@ -188,12 +197,12 @@ export function PdfCompressTool() {
               />
             ) : result ? (
               <>
-                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
+                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3 min-w-0 w-full">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
                     <FilePdfIcon className="size-5" weight="duotone" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-foreground truncate break-all">{result.name}</p>
                     <p className="text-[11px] text-muted-foreground">{formatBytes(result.compressedSize)}</p>
                   </div>
                 </div>

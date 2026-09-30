@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import {
   ArrowClockwiseIcon,
   ArrowLeftIcon,
@@ -28,6 +28,13 @@ export function PdfOrganizeTool() {
   const [result, setResult] = useState<OrganizePdfResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   function handleFileSelect(selectedFiles: FileList | null) {
     setError(null)
@@ -131,22 +138,24 @@ export function PdfOrganizeTool() {
       </div>
 
       {/* Main Workspace */}
-      <div id="tool-workspace" className="space-y-6">
-        <Card className="rounded-xl border-border bg-card">
+      <div id="tool-workspace" className="space-y-6 min-w-0 w-full">
+        <Card className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Document Upload</CardTitle>
             <CardDescription className="text-xs">
               Upload a PDF to view and reorder its pages.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <FileDropzone
-              id="pdf-organize-input"
-              title={file ? file.name : "Select or drop a PDF file"}
-              description={file ? `${formatBytes(file.size)} • ${pages.length} pages` : "PDF files up to 50 MB"}
-              accept="application/pdf"
-              onFiles={(files) => handleFileSelect(files)}
-            />
+          <CardContent className="space-y-4 min-w-0">
+            <div className="min-w-0">
+              <FileDropzone
+                id="pdf-organize-input"
+                title={file ? file.name : "Select or drop a PDF file"}
+                description={file ? `${formatBytes(file.size)} • ${pages.length} pages` : "PDF files up to 50 MB"}
+                accept="application/pdf"
+                onFiles={(files) => handleFileSelect(files)}
+              />
+            </div>
           </CardContent>
         </Card>
 
@@ -249,7 +258,7 @@ export function PdfOrganizeTool() {
             )}
 
             {result && (
-              <div className="pt-2">
+              <div ref={outputRef} id="output-section" className="pt-2 min-w-0 w-full">
                 <FileSaveBar
                   fileUrl={result.url}
                   defaultFileName={result.name}

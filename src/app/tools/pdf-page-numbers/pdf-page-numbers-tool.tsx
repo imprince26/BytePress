@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import {
   FilePdfIcon,
   HashStraightIcon,
@@ -34,6 +34,13 @@ export function PdfPageNumbersTool() {
   const [result, setResult] = useState<AddPageNumbersResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   function handleFileSelect(selectedFiles: FileList | null) {
     setError(null)
@@ -91,22 +98,24 @@ export function PdfPageNumbersTool() {
         </p>
       </div>
 
-      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="rounded-xl border-border bg-card">
+      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] min-w-0 w-full">
+        <Card className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Document & Numbering Options</CardTitle>
             <CardDescription className="text-xs">
               Upload your file and choose position and format.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <FileDropzone
-              id="pdf-numbers-input"
-              title={file ? file.name : "Select or drop a PDF file"}
-              description={file ? `File size: ${formatBytes(file.size)}` : "PDF files up to 50 MB"}
-              accept="application/pdf"
-              onFiles={(files) => handleFileSelect(files)}
-            />
+          <CardContent className="space-y-4 min-w-0">
+            <div className="min-w-0">
+              <FileDropzone
+                id="pdf-numbers-input"
+                title={file ? file.name : "Select or drop a PDF file"}
+                description={file ? `File size: ${formatBytes(file.size)}` : "PDF files up to 50 MB"}
+                accept="application/pdf"
+                onFiles={(files) => handleFileSelect(files)}
+              />
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
@@ -203,14 +212,14 @@ export function PdfPageNumbersTool() {
         </Card>
 
         {/* Right Column */}
-        <Card className="rounded-xl border-border bg-card">
+        <Card ref={outputRef} id="output-section" className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Numbered Document</CardTitle>
             <CardDescription className="text-xs">
               Preview and save the numbered file.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 min-w-0">
             {isPending ? (
               <ToolProcessingState
                 title="Adding page numbers..."
@@ -218,12 +227,12 @@ export function PdfPageNumbersTool() {
               />
             ) : result ? (
               <>
-                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
+                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3 min-w-0 w-full">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
                     <FilePdfIcon className="size-5" weight="duotone" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-foreground truncate break-all">{result.name}</p>
                     <p className="text-[11px] text-muted-foreground">{formatBytes(result.size)} • {result.pageCount} pages</p>
                   </div>
                 </div>

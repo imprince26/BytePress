@@ -47,6 +47,13 @@ export function ImageCompressor() {
   const [isPending, startTransition] = useTransition()
   const previewUrlRef = useRef<string | null>(null)
   const resultUrlRef = useRef<string | null>(null)
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   useEffect(() => {
     return () => {
@@ -145,18 +152,18 @@ export function ImageCompressor() {
         </p>
       </div>
 
-      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="rounded-2xl border-border bg-card shadow-xs">
+      <div id="tool-workspace" className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] min-w-0 w-full">
+        <Card className="rounded-2xl border-border bg-card shadow-xs min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Image Settings</CardTitle>
             <CardDescription className="text-xs">
               Upload an image and adjust quality or target size settings.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
-            <div>
+          <CardContent className="space-y-5 min-w-0">
+            <div className="min-w-0">
               <Label htmlFor="image" className="text-xs font-semibold text-foreground">Image File</Label>
-              <div className="mt-1.5">
+              <div className="mt-1.5 min-w-0">
                 <FileDropzone
                   id="image"
                   title={file ? file.name : "Drop an image here"}
@@ -167,11 +174,11 @@ export function ImageCompressor() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
+            <div className="grid gap-4 sm:grid-cols-2 min-w-0">
+              <div className="min-w-0">
                 <Label htmlFor="mode" className="text-xs font-semibold text-foreground">Mode</Label>
                 <Select value={mode} onValueChange={(value) => setMode(value as CompressionMode)}>
-                  <SelectTrigger id="mode" className="mt-1.5 h-10 text-xs bg-background">
+                  <SelectTrigger id="mode" className="mt-1.5 h-10 text-xs bg-background w-full min-w-0">
                     <SelectValue placeholder="Compression mode" />
                   </SelectTrigger>
                   <SelectContent>
@@ -181,10 +188,10 @@ export function ImageCompressor() {
                 </Select>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <Label htmlFor="format" className="text-xs font-semibold text-foreground">Output Format</Label>
                 <Select value={format} onValueChange={(value) => setFormat(value as OutputFormat)}>
-                  <SelectTrigger id="format" className="mt-1.5 h-10 text-xs bg-background">
+                  <SelectTrigger id="format" className="mt-1.5 h-10 text-xs bg-background w-full min-w-0">
                     <SelectValue placeholder="Output format" />
                   </SelectTrigger>
                   <SelectContent>
@@ -197,7 +204,7 @@ export function ImageCompressor() {
             </div>
 
             {mode === "quality" ? (
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <div className="flex items-center justify-between text-xs">
                   <Label htmlFor="quality" className="font-semibold text-foreground">Compression Quality</Label>
                   <span className="font-mono font-bold text-primary">{quality}%</span>
@@ -214,7 +221,7 @@ export function ImageCompressor() {
                 />
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <Label htmlFor="targetKb" className="text-xs font-semibold text-foreground">Target Size (KB)</Label>
                 <Input
                   id="targetKb"
@@ -223,15 +230,15 @@ export function ImageCompressor() {
                   max="20000"
                   value={targetKb}
                   onChange={(e) => setTargetKb(Math.max(10, Number(e.target.value)))}
-                  className="h-10 text-xs bg-background"
+                  className="h-10 text-xs bg-background w-full min-w-0"
                 />
               </div>
             )}
 
             {error && (
-              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive min-w-0">
                 <WarningCircleIcon className="size-4 shrink-0" weight="fill" />
-                <span>{error}</span>
+                <span className="truncate break-all">{error}</span>
               </div>
             )}
 
@@ -239,7 +246,7 @@ export function ImageCompressor() {
               type="button"
               onClick={compressSelectedImage}
               disabled={!file || isPending}
-              className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              className="h-11 w-full rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 gap-2 cursor-pointer"
             >
               <SparkleIcon className="size-4" weight="fill" />
               <span>{isPending ? "Compressing Image..." : "Compress Image"}</span>
@@ -248,14 +255,14 @@ export function ImageCompressor() {
         </Card>
 
         {/* Right Column: Preview & Save */}
-        <Card className="rounded-2xl border-border bg-card shadow-xs">
+        <Card ref={outputRef} id="output-section" className="rounded-2xl border-border bg-card shadow-xs min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Preview & Output</CardTitle>
             <CardDescription className="text-xs">
               Review compressed image metrics and save to your preferred directory.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 min-w-0">
             {isPending ? (
               <ToolProcessingState
                 title="Compressing Image..."
@@ -263,7 +270,7 @@ export function ImageCompressor() {
               />
             ) : (
               <>
-                <div className="overflow-hidden rounded-xl border border-border bg-muted/20 p-2">
+                <div className="overflow-hidden rounded-xl border border-border bg-muted/20 p-2 min-w-0">
                   {previewUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -279,22 +286,22 @@ export function ImageCompressor() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="rounded-xl border border-border bg-background p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Original</p>
-                    <p className="mt-1 text-xs font-bold font-mono text-foreground">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center min-w-0 w-full">
+                  <div className="rounded-xl border border-border bg-background p-2 sm:p-3 min-w-0 overflow-hidden">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">Original</p>
+                    <p className="mt-1 text-xs font-bold font-mono text-foreground truncate">
                       {file ? formatBytes(file.size) : "-"}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Output</p>
-                    <p className="mt-1 text-xs font-bold font-mono text-foreground">
+                  <div className="rounded-xl border border-border bg-background p-2 sm:p-3 min-w-0 overflow-hidden">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">Output</p>
+                    <p className="mt-1 text-xs font-bold font-mono text-foreground truncate">
                       {result ? formatBytes(result.size) : "-"}
                     </p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Saved</p>
-                    <p className="mt-1 text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                  <div className="rounded-xl border border-border bg-background p-2 sm:p-3 min-w-0 overflow-hidden">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">Saved</p>
+                    <p className="mt-1 text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400 truncate">
                       {result && file
                         ? `${Math.round(Math.max(0, 1 - result.size / file.size) * 100)}%`
                         : "-"}

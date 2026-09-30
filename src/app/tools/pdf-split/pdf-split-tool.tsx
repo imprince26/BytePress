@@ -29,6 +29,13 @@ export function PdfSplitTool() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const resultUrlRef = useRef<string | null>(null)
+  const outputRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (result && outputRef.current && window.innerWidth < 1024) {
+      outputRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }, [result])
 
   useEffect(() => {
     return () => {
@@ -124,22 +131,24 @@ export function PdfSplitTool() {
         </p>
       </div>
 
-      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="rounded-xl border-border bg-card">
+      <div id="tool-workspace" className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] min-w-0 w-full">
+        <Card className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Document & Range</CardTitle>
             <CardDescription className="text-xs">
               Upload a PDF document and specify which pages to extract.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <FileDropzone
-              id="pdf-split-input"
-              title={file ? file.name : "Select or drop a PDF file"}
-              description={file ? `${formatBytes(file.size)} ${pageCount ? `• ${pageCount} pages` : ""}` : "PDF files up to 50 MB"}
-              accept="application/pdf"
-              onFiles={(files) => chooseFile(files?.[0] ?? null)}
-            />
+          <CardContent className="space-y-4 min-w-0">
+            <div className="min-w-0">
+              <FileDropzone
+                id="pdf-split-input"
+                title={file ? file.name : "Select or drop a PDF file"}
+                description={file ? `${formatBytes(file.size)} ${pageCount ? `• ${pageCount} pages` : ""}` : "PDF files up to 50 MB"}
+                accept="application/pdf"
+                onFiles={(files) => chooseFile(files?.[0] ?? null)}
+              />
+            </div>
 
             <div>
               <div className="flex items-center justify-between text-xs">
@@ -184,14 +193,14 @@ export function PdfSplitTool() {
         </Card>
 
         {/* Right Column */}
-        <Card className="rounded-xl border-border bg-card">
+        <Card ref={outputRef} id="output-section" className="rounded-xl border-border bg-card min-w-0 w-full overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-bold">Extracted Document</CardTitle>
             <CardDescription className="text-xs">
               Preview and save the extracted pages.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 min-w-0">
             {isPending ? (
               <ToolProcessingState
                 title="Extracting pages..."
@@ -199,12 +208,12 @@ export function PdfSplitTool() {
               />
             ) : result ? (
               <>
-                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3">
+                <div className="rounded-lg border border-border bg-muted/20 p-3.5 flex items-center gap-3 min-w-0 w-full">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
                     <FilePdfIcon className="size-5" weight="duotone" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-foreground truncate">{result.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-foreground truncate break-all">{result.name}</p>
                     <p className="text-[11px] text-muted-foreground">{formatBytes(result.size)} • {result.pages} pages</p>
                   </div>
                 </div>
